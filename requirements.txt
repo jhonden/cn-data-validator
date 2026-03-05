@@ -1,0 +1,12 @@
+# 网络数据包校验工具依赖配置
+
+# GUI版本1: CustomTkinter版本 (validator.py)
+customtkinter>=5.2.0
+
+# GUI版本2: PySimpleGUI版本 (validator_psg.py)
+PySimpleGUI>=4.60.0
+
+# GUI版本3: PyQt6版本 (validator_qt.py)
+PyQt6>=6.5.0
+
+# 核心功能使用标准库，无需额外依赖
