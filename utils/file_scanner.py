@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from package_identifier import PackageIdentifier
 
 class FileScanner:
     """文件扫描器"""
@@ -9,6 +10,7 @@ class FileScanner:
         self.supported_extensions = ['.zip', '.tar.gz', '.tar', '.xlsx']
         self.illegal_files = []
         self.valid_files = []
+        self.identifier = PackageIdentifier()  # 包识别器
 
     def scan_directory(self):
         """递归扫描目录"""
@@ -22,12 +24,17 @@ class FileScanner:
 
                 # 检查文件格式
                 if self._is_valid_file(file):
+                    # 识别包类型
+                    package_type, details = self.identifier.identify(file_path, file)
+
                     self.valid_files.append({
                         'path': file_path,
                         'relative_path': relative_path,
                         'name': file,
                         'size': os.path.getsize(file_path),
-                        'modified': datetime.fromtimestamp(os.path.getmtime(file_path))
+                        'modified': datetime.fromtimestamp(os.path.getmtime(file_path)),
+                        'package_type': package_type,  # 包类型
+                        'package_details': details  # 包详情
                     })
                 else:
                     self.illegal_files.append({
@@ -35,7 +42,9 @@ class FileScanner:
                         'relative_path': relative_path,
                         'name': file,
                         'size': os.path.getsize(file_path),
-                        'modified': datetime.fromtimestamp(os.path.getmtime(file_path))
+                        'modified': datetime.fromtimestamp(os.path.getmtime(file_path)),
+                        'package_type': None,
+                        'package_details': {'note': '文件格式非法'}
                     })
 
     def _is_valid_file(self, filename):

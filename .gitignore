@@ -39,3 +39,5 @@ Desktop.ini
 校验结果_*.txt
 校验结果_*.csv
 *.test
+test_packages/
+test_package_id.py

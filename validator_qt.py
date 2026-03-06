@@ -130,8 +130,8 @@ class ValidatorApp(QMainWindow):
 
         # 表格
         self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        self.table.setHorizontalHeaderLabels(["文件名", "文件路径", "大小", "格式", "状态", "详情"])
+        self.table.setColumnCount(7)
+        self.table.setHorizontalHeaderLabels(["文件名", "文件路径", "大小", "格式", "包类型", "状态", "详情"])
 
         # 设置列宽
         header = self.table.horizontalHeader()
@@ -140,7 +140,8 @@ class ValidatorApp(QMainWindow):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
 
         # 设置表格样式
         self.table.setAlternatingRowColors(True)
@@ -241,14 +242,39 @@ class ValidatorApp(QMainWindow):
 
         # 显示合法文件
         for file_info in self.scanner.valid_files:
+            # 获取包类型和详情
+            package_type = file_info.get('package_type', '未知')
+            package_details = file_info.get('package_details', {})
+
+            # 根据包类型设置颜色
+            if package_type == 'NIC包':
+                package_color = '#2196F3'  # 蓝色
+            elif package_type == '未知':
+                package_color = '#FF9800'  # 橙色
+            else:
+                package_color = '#666666'  # 灰色
+
+            # 生成详情信息
+            detail = ''
+            if package_type == 'NIC包':
+                time = package_details.get('time', '')
+                if time:
+                    detail = f'时间: {time}'
+            elif package_type == '未知':
+                note = package_details.get('note', '')
+                if note:
+                    detail = note
+
             self.add_file_row(
                 file_info['name'],
                 file_info['relative_path'],
                 self._format_size(file_info['size']),
                 self._get_file_type(file_info['name']),
+                package_type,
                 '✅ 合法',
-                '',
-                '#4CAF50'  # 绿色
+                detail,
+                '#4CAF50',  # 状态颜色（绿色）
+                package_color  # 包类型颜色
             )
 
         # 显示非法文件
@@ -258,9 +284,11 @@ class ValidatorApp(QMainWindow):
                 file_info['relative_path'],
                 self._format_size(file_info['size']),
                 self._get_file_type(file_info['name']),
+                '-',
                 '❌ 非法',
                 '数据包格式非法',
-                '#F44336'  # 红色
+                '#F44336',  # 状态颜色（红色）
+                '#666666'  # 包类型颜色（灰色）
             )
 
         # 更新统计信息
@@ -292,18 +320,23 @@ class ValidatorApp(QMainWindow):
                 f"所有 {stats['total_files']} 个文件格式均合法。"
             )
 
-    def add_file_row(self, name, path, size, file_type, status, detail, color):
+    def add_file_row(self, name, path, size, file_type, package_type, status, detail, status_color, package_color):
         """添加文件行到表格"""
         row = self.table.rowCount()
         self.table.insertRow(row)
 
-        items = [name, path, size, file_type, status, detail]
+        items = [name, path, size, file_type, package_type, status, detail]
 
         for col, item_text in enumerate(items):
             item = QTableWidgetItem(str(item_text))
-            if col == 4:  # 状态列
-                item.setForeground(QColor(color))
+            # 状态列（第5列）使用状态颜色
+            if col == 5:
+                item.setForeground(QColor(status_color))
                 item.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+            # 包类型列（第4列）使用包类型颜色
+            elif col == 4:
+                item.setForeground(QColor(package_color))
+                item.setFont(QFont("Arial", 9))
             self.table.setItem(row, col, item)
 
     def _format_size(self, size):
@@ -381,8 +414,9 @@ class ValidatorApp(QMainWindow):
                 f.write(f"路径: {self.table.item(row, 1).text()}\n")
                 f.write(f"大小: {self.table.item(row, 2).text()}\n")
                 f.write(f"格式: {self.table.item(row, 3).text()}\n")
-                f.write(f"状态: {self.table.item(row, 4).text()}\n")
-                detail = self.table.item(row, 5).text()
+                f.write(f"包类型: {self.table.item(row, 4).text()}\n")
+                f.write(f"状态: {self.table.item(row, 5).text()}\n")
+                detail = self.table.item(row, 6).text()
                 if detail:
                     f.write(f"详情: {detail}\n")
                 f.write("\n")
@@ -393,7 +427,7 @@ class ValidatorApp(QMainWindow):
 
         with open(filename, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            writer.writerow(['文件名', '文件路径', '大小', '格式', '状态', '详情'])
+            writer.writerow(['文件名', '文件路径', '大小', '格式', '包类型', '状态', '详情'])
 
             for row in range(self.table.rowCount()):
                 writer.writerow([
@@ -402,7 +436,8 @@ class ValidatorApp(QMainWindow):
                     self.table.item(row, 2).text(),
                     self.table.item(row, 3).text(),
                     self.table.item(row, 4).text(),
-                    self.table.item(row, 5).text()
+                    self.table.item(row, 5).text(),
+                    self.table.item(row, 6).text()
                 ])
 
 
