@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from package_identifier import PackageIdentifier
+from .package_identifier import PackageIdentifier
 
 class FileScanner:
     """文件扫描器"""
