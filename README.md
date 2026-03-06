@@ -15,9 +15,30 @@ cn-data-validator/
 ├── PACKAGING.md        # 打包和问题解决说明
 ├── BUILD.md           # 详细打包指南
 ├── README.md          # 本文件
+├── docs/              # 文档目录
+│   └── standards/     # 开发规范文档
+│       ├── README.md                    # 规范文档索引
+│       ├── development-conventions.md       # 编码规范
+│       ├── code-submission-workflow.md     # 代码提交流程
+│       └── project-constraints.md          # 项目关键约束
 └── utils/
-    └── file_scanner.py # 文件扫描器（核心逻辑）
+    ├── file_scanner.py       # 文件扫描器
+    └── package_identifier.py # 数据包识别器
 ```
+
+## 📚 开发规范
+
+本项目遵循严格的开发规范，开发前请务必阅读：
+
+- **[开发规范文档目录](docs/standards/)** - 所有规范文档索引
+  - [编码规范](docs/standards/development-conventions.md) - 编码风格和最佳实践
+  - [代码提交流程](docs/standards/code-submission-workflow.md) - 代码验证和提交流程
+  - [项目约束](docs/standards/project-constraints.md) - 技术栈和功能范围约束
+
+**重要提醒**：
+- ⚠️ 修改代码后**不要自动提交**，必须先验证
+- ⚠️ 严格遵循 [项目约束](docs/standards/project-constraints.md) 中的技术栈要求
+- ⚠️ 代码注释和文档**优先使用中文**
 
 ## 运行方式
 
