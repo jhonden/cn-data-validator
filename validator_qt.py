@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 from utils.file_scanner import FileScanner
+from utils.package_identifier import PackageIdentifier
 
 
 class ValidationThread(QThread):
@@ -245,20 +246,20 @@ class ValidatorApp(QMainWindow):
             package_details = file_info.get('package_details', {})
 
             # Set color based on package type
-            if package_type == 'NIC包':
+            if package_type == 'NIC Package':
                 package_color = '#2196F3'  # Blue
-            elif package_type == '未知':
+            elif package_type == 'Unknown':
                 package_color = '#FF9800'  # Orange
             else:
                 package_color = '#666666'  # Gray
 
             # Generate detail information
             detail = ''
-            if package_type == 'NIC包':
+            if package_type == 'NIC Package':
                 time = package_details.get('time', '')
                 if time:
                     detail = f'Time: {time}'
-            elif package_type == '未知':
+            elif package_type == 'Unknown':
                 note = package_details.get('note', '')
                 if note:
                     detail = note
