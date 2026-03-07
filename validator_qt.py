@@ -446,6 +446,8 @@ class ValidatorApp(QMainWindow):
                     missing_neinfo = nic_validation.get('missing_neinfo', False)
                     # 检查是否所有网元类型都不支持
                     all_unsupported = nic_validation.get('all_unsupported', False)
+                    # 检查采集时间范围是否过短
+                    collect_range_too_short = nic_validation.get('collect_range_too_short', False)
 
                     if not nic_validation.get('valid', True):
                         # NIC 校验失败
@@ -454,6 +456,12 @@ class ValidatorApp(QMainWindow):
                             status = 'Invalid'
                             status_color = '#F44336'  # Red
                             detail = 'Invalid NIC package format: Missing required file neinfo.txt'
+                        elif collect_range_too_short:
+                            # 采集时间范围过短 - 标记为 Invalid（红色）
+                            status = 'Invalid'
+                            status_color = '#F44336'  # Red
+                            hours = nic_validation.get('collect_range_hours', 0)
+                            detail = f'NIC package collection time range is too short, cannot support network assessment requirements. System requires at least 24h, please re-collect. (Actual: {hours}h)'
                         elif all_unsupported:
                             # 所有网元类型都不支持 - 标记为 Invalid（红色）
                             status = 'Invalid'

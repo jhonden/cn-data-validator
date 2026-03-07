@@ -50,7 +50,9 @@ class FileScanner:
 
                     # 如果是 NIC 包，执行深度校验
                     if package_type == 'NIC Package':
-                        nic_validation = self._validate_nic_package(file_path)
+                        # 获取 report 文件名
+                        report_file_name = details.get('report_file')
+                        nic_validation = self._validate_nic_package(file_path, report_file_name)
                         file_info['nic_validation'] = nic_validation
 
                     self.valid_files.append(file_info)
@@ -94,17 +96,29 @@ class FileScanner:
             'illegal_files': len(self.illegal_files)
         }
 
-    def _validate_nic_package(self, nic_path: str):
+    def _validate_nic_package(self, nic_path: str, report_file_name: str = None):
         """校验 NIC 包中的网元数据
 
         Args:
             nic_path: NIC 包文件路径
+            report_file_name: NIC 包对应的报告文件名（可选）
 
         Returns:
             NIC 校验结果字典
         """
         try:
-            validator = NICValidator(nic_path)
+            # 如果提供了 report_file_name，则尝试找到完整的 report 文件路径
+            report_file_path = None
+            if report_file_name:
+                # report 文件应该在 NIC 包同级目录
+                nic_dir = os.path.dirname(nic_path)
+                report_file_path = os.path.join(nic_dir, report_file_name)
+
+                # 如果不存在，可能在 NIC 包内部（已经解压在临时目录）
+                if not os.path.exists(report_file_path):
+                    report_file_path = None
+
+            validator = NICValidator(nic_path, report_file_path)
             return validator.validate()
         except Exception as e:
             return {

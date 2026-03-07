@@ -4,6 +4,7 @@
 - 网元元数据解析
 - 网元数据文件夹检查
 - 关键文件缺失校验
+- 采集时间范围校验
 """
 
 import os
@@ -11,6 +12,8 @@ import re
 import tarfile
 import tempfile
 from typing import Dict, List, Optional, Set
+from datetime import datetime
+import xml.etree.ElementTree as ET
 
 
 class NEInstance:
@@ -67,14 +70,16 @@ class NICValidator:
         ]
     }
 
-    def __init__(self, nic_path: str):
+    def __init__(self, nic_path: str, report_file: Optional[str] = None):
         """
         初始化 NIC 包校验器
 
         Args:
             nic_path: NIC 包文件路径（.tar.gz）
+            report_file: NIC 包对应的报告文件路径（可选）
         """
         self.nic_path = nic_path
+        self.report_file = report_file
         self.ne_instances: List[NEInstance] = []
         self.neinfo_path = None
         self.temp_dir = None
@@ -90,6 +95,8 @@ class NICValidator:
             - unsupported_types: 不支持的网元类型列表
             - missing_folders: 缺失的网元数据文件夹
             - missing_files: 缺失的关键文件 {folder_name: [missing_file_types]}
+            - collect_range_too_short: 采集时间范围是否过短
+            - collect_range_hours: 采集时间范围（小时）
             - warnings: 警告信息列表
             - errors: 错误信息列表
         """
@@ -99,6 +106,8 @@ class NICValidator:
             'unsupported_types': [],
             'missing_folders': [],
             'missing_files': {},
+            'collect_range_too_short': False,
+            'collect_range_hours': None,
             'warnings': [],
             'errors': []
         }
@@ -119,18 +128,21 @@ class NICValidator:
             result['neinfo_exists'] = True
             self._parse_neinfo_file(result)
 
-            # 3. 检查网元数据文件夹是否存在
+            # 3. 检查采集时间范围
+            self._check_collect_range(result)
+
+            # 4. 检查网元数据文件夹是否存在
             self._check_ne_folders(result)
 
-            # 4. 检查关键文件
+            # 5. 检查关键文件
             self._check_required_files(result)
 
-            # 5. 判断整体校验结果
+            # 6. 判断整体校验结果
             # 只有当所有网元类型都不支持时，才标记为无效
             # 如果有任何一个网元类型支持，即使有其他不支持的，也算部分有效
             all_unsupported = len(self.ne_instances) > 0 and len(result['unsupported_types']) == len(self.ne_instances)
 
-            if result['missing_folders'] or result['missing_files'] or all_unsupported:
+            if result['collect_range_too_short'] or result['missing_folders'] or result['missing_files'] or all_unsupported:
                 result['valid'] = False
                 # 标记是否完全不支持的包
                 result['all_unsupported'] = all_unsupported
@@ -268,6 +280,97 @@ class NICValidator:
                     'ne_type': ne_instance.ne_type,
                     'files': missing_files
                 }
+
+    def _check_collect_range(self, result: Dict):
+        """检查采集时间范围是否大于 24 小时"""
+        try:
+            # 查找 report.tar.gz 文件
+            report_file_path = self._find_report_file()
+            if not report_file_path:
+                # report 文件不存在，跳过此项校验
+                result['warnings'].append("Report file not found, skipping collection time range check")
+                return
+
+            # 解压 report.tar.gz
+            self._extract_report_package(report_file_path)
+
+            # 查找并解析 TaskExtValue.xml
+            collect_range = self._parse_collect_range()
+            if not collect_range:
+                result['warnings'].append("Failed to parse collection time range from TaskExtValue.xml")
+                return
+
+            # 计算时间差（小时）
+            start_time, end_time = collect_range
+            time_diff = end_time - start_time
+            hours = time_diff.total_seconds() / 3600
+
+            result['collect_range_hours'] = round(hours, 2)
+
+            # 检查是否小于 24 小时
+            if hours < 24:
+                result['valid'] = False
+                result['collect_range_too_short'] = True
+                result['errors'].append(
+                    "NIC package collection time range is too short, cannot support network assessment requirements. "
+                    f"System requires at least 24h, please re-collect. (Actual: {hours:.2f}h)"
+                )
+
+        except Exception as e:
+            result['warnings'].append(f"Error checking collection time range: {str(e)}")
+
+    def _find_report_file(self) -> Optional[str]:
+        """在临时目录中查找 report.tar.gz 文件"""
+        for item in os.listdir(self.temp_dir):
+            if item.endswith('_report.tar.gz'):
+                return os.path.join(self.temp_dir, item)
+        return None
+
+    def _extract_report_package(self, report_file_path: str):
+        """解压 report.tar.gz 到临时目录"""
+        with tarfile.open(report_file_path, 'r:gz') as tar:
+            tar.extractall(self.temp_dir)
+
+    def _parse_collect_range(self) -> Optional[tuple]:
+        """
+        解析 TaskExtValue.xml 中的 CollectRange 标签
+
+        Returns:
+            (start_time, end_time) 或 None
+        """
+        # 查找 taskparam/TaskExtValue.xml
+        taskparam_path = os.path.join(self.temp_dir, 'taskparam')
+        xml_path = os.path.join(taskparam_path, 'TaskExtValue.xml')
+
+        if not os.path.exists(xml_path):
+            return None
+
+        try:
+            # 解析 XML
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+
+            # 查找 CollectRange 标签
+            collect_range = root.find('.//CollectRange')
+            if collect_range is None or collect_range.text is None:
+                return None
+
+            # 解析格式：开始时间|结束时间
+            time_range = collect_range.text.strip()
+            if '|' not in time_range:
+                return None
+
+            start_str, end_str = time_range.split('|', 1)
+
+            # 解析时间格式：2025-03-20 21:15:18
+            start_time = datetime.strptime(start_str.strip(), '%Y-%m-%d %H:%M:%S')
+            end_time = datetime.strptime(end_str.strip(), '%Y-%m-%d %H:%M:%S')
+
+            return (start_time, end_time)
+
+        except Exception as e:
+            # XML 解析失败
+            return None
 
     def get_summary(self) -> str:
         """获取校验结果摘要"""
