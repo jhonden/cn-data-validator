@@ -451,7 +451,7 @@ class ValidatorApp(QMainWindow):
                             # 所有网元类型都不支持 - 标记为 Invalid（红色）
                             status = 'Invalid'
                             status_color = '#F44336'  # Red
-                            detail = '该NIC包中没有任何一个CNAE支持的网元，无需采集该NIC包'
+                            detail = 'No CNAE-supported network elements found in this NIC package, no need to collect'
                         else:
                             # 其他错误 - 标记为 Warning（橙色）
                             status = 'Warning'
