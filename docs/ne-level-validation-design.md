@@ -1225,7 +1225,346 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 
 ---
 
-## 10. 配置填写示例
+## 10. 测试验收用例
+
+本节提供详细的测试验收用例，用于验证网元级别静态 MML 校验功能的正确性。实现完成后，可按以下用例进行自测。
+
+### 10.1 测试用例格式
+
+每个测试用例包含以下信息：
+- **用例ID**：唯一标识
+- **网元类型**：测试的网元类型
+- **测试场景**：正常情况、边界情况、异常情况
+- **测试数据**：NIC 包结构说明
+- **预期结果**：校验通过/失败及提示信息
+- **验证步骤**：手动验证步骤
+
+### 10.2 特殊网元类型测试用例
+
+#### 用例 ID：NE-T-001 - vUGW (CGW 部署形态，完整)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | vUGW |
+| **部署形态** | CGW |
+| **测试场景** | 正常情况 - 所有必需文件都存在 |
+| **测试数据** |
+```
+vUGW_NE=2001_IP_10_140_2_20_100_PPR_UGW01/
+├── omo/mml/
+│   └── omo_config.txt
+├── vnrs/mml/
+│   └── vnrs_config.txt
+├── 0/mml/
+│   └── 0_config.txt
+└── cgw/mml/
+    └── mmlconf_cgw_001.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 vUGW_NE=2001 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 vUGW_NE=2001 的状态为 "Valid"<br>4. 展开 Details 查看，没有错误提示 |
+
+---
+
+#### 用例 ID：NE-T-002 - vUGW (CGW 部署形态，缺少 omo/mml)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | vUGW |
+| **部署形态** | CGW |
+| **测试场景** | 异常情况 - 缺少 omo/mml 文件 |
+| **测试数据** |
+```
+vUGW_NE=2001_IP_10_140_2_20_100_PPR_UGW01/
+├── omo/mml/
+│   └── (空)
+├── vnrs/mml/
+│   └── vnrs_config.txt
+├── 0/mml/
+│   └── 0_config.txt
+└── cgw/mml/
+    └── mmlconf_cgw_001.txt
+```
+| **预期结果** | Status: Invalid (红色)<br>Details: "missing: omo/mml/*.txt" |
+| **验证步骤** | 1. 选择包含 vUGW_NE=2001 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 vUGW_NE=2001 的状态为 "Invalid"<br>4. 展开 Details 查看错误提示显示缺少 omo/mml/*.txt |
+
+---
+
+#### 用例 ID：NE-T-003 - vUGW (三种部署形态都不满足)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | vUGW |
+| **测试场景** | 异常情况 - 三种部署形态都不满足 |
+| **测试数据** |
+```
+vUGW_NE=2001_IP_10_140_2_20_100_PPR_UGW01/
+├── omo/mml/
+│   └── (空)
+├── vnrs/mml/
+│   └── (空)
+├── cgw/mml/
+│   └── (空)
+└── dgw/mml/
+    └── mmlconf_dgw_001.txt
+```
+| **预期结果** | Status: Invalid (红色)<br>Details: "missing: omo/mml/*.txt" |
+| **验证步骤** | 1. 选择包含 vUGW_NE=2001 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 vUGW_NE=2001 的状态为 "Invalid"<br>4. 展开 Details 查看错误提示 |
+
+---
+
+#### 用例 ID：NE-T-004 - vCG (完整)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | vCG |
+| **测试场景** | 正常情况 - 所有必需文件都存在 |
+| **测试数据** |
+```
+vCG_NE=3001_IP_10_140_2_30_100_PPR_CG01/
+├── cg/mml/
+│   └── cg_config.txt
+├── vnrs/mml/
+│   └── vnrs_config.txt
+└── 0/mml/
+    └── 0_config.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 vCG_NE=3001 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 vCG_NE=3001 的状态为 "Valid"<br>4. 展开 Details 查看，没有错误提示 |
+
+---
+
+#### 用例 ID：NE-T-005 - vUSN (完整)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | vUSN |
+| **测试场景** | 正常情况 - 所有必需文件都存在 |
+| **测试数据** |
+```
+vUSN_NE=4001_IP_10_140_2_40_100_PPR_USN01/
+├── omo/mml/
+│   └── omo_config.txt
+├── vnrs/mml/
+│   └── vnrs_config.txt
+├── 0/mml/
+│   └── 0_config.txt
+└── usn/mml/
+    └── usn_config.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 vUSN_NE=4001 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 vUSN_NE=4001 的状态为 "Valid"<br>4. 展开 Details 查看，没有错误提示 |
+
+---
+
+### 10.3 普通网元类型测试用例
+
+#### 用例 ID：NE-T-101 - ATS (正常，有 ALLME_*.txt)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | ATS |
+| **测试场景** | 正常情况 - 存在 ALLME_*.txt 文件 |
+| **测试数据** |
+```
+ATS_NE=1044_IP_10_140_2_10_59_PPR_ATS01/
+└── dataconfiguration/
+    └── ALLME_ATS01.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 ATS_NE=1044 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 ATS_NE=1044 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-102 - ATS (正常，有 .zip 文件)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | ATS |
+| **测试场景** | 正常情况 - 存在 .zip 文件 |
+| **测试数据** |
+```
+ATS_NE=1044_IP_10_140_2_10_59_PPR_ATS01/
+└── dataconfiguration/
+    └── data.zip
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 ATS_NE=1044 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 ATS_NE=1044 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-103 - ATS (正常，有 .tar.gz 文件)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | ATS |
+| **测试场景** | 正常情况 - 存在 .tar.gz 文件 |
+| **测试数据** |
+```
+ATS_NE=1044_IP_10_140_2_10_59_PPR_ATS01/
+└── dataconfiguration/
+    └── data.tar.gz
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 ATS_NE=1044 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 ATS_NE=1044 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-104 - ATS (异常，dataconfiguration 目录不存在)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | ATS |
+| **测试场景** | 异常情况 - dataconfiguration 目录不存在 |
+| **测试数据** |
+```
+ATS_NE=1044_IP_10_140_2_10_59_PPR_ATS01/
+└── (没有 dataconfiguration 目录)
+```
+| **预期结果** | Status: Invalid (红色)<br>Details: "Static MML missing"<br>Expected: dataconfiguration/*.tar.gz, *.zip, ALLME_*.txt |
+| **验证步骤** | 1. 选择包含 ATS_NE=1044 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 ATS_NE=1044 的状态为 "Invalid"<br>4. 展开 Details 查看错误提示 |
+
+---
+
+#### 用例 ID：NE-T-105 - CSCF (正常，有 ALLME_*.txt)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | CSCF (CNAE 内部: CSC) |
+| **测试场景** | 正常情况 - 存在 ALLME_*.txt 文件 |
+| **测试数据** |
+```
+CSCF_NE=1094_IP_10_140_2_1_56_PPR_CSCF01/
+└── dataconfiguration/
+    └── ALLME_CSCF01.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 CSCF_NE=1094 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 CSCF_NE=1094 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-106 - UDG (正常，有 .zip 文件)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | UDG |
+| **测试场景** | 正常情况 - 存在 .zip 文件 |
+| **测试数据** |
+```
+UDG_NE=xxx_IP_xxx_xxx_PPR_UDGxx/
+└── CSP/Configuration/
+    └── data.zip
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 UDG_NE=xxx 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 UDG_NE=xxx 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-107 - UDM (正常，有 *_UDM_*.tar.gz 文件)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | UDM |
+| **测试场景** | 正常情况 - 存在 *_UDM_*.tar.gz 文件 |
+| **测试数据** |
+```
+UDM_NE=xxx_IP_xxx_xxx_PPR_UDMxx/
+└── UDM/MML/MMLConfig/
+    └── data_UDM_001.tar.gz
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 UDM_NE=xxx 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 UDM_NE=xxx 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-108 - UPCC (正常，有 .zip 文件)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | UPCC |
+| **测试场景** | 正常情况 - 存在 .zip 文件 |
+| **测试数据** |
+```
+UPCC_NE=xxx_IP_xxx_xxx_PPR_UPCCxx/
+└── UPCC/
+    └── data.zip
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 UPCC_NE=xxx 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 UPCC_NE=xxx 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-109 - USCDB (套1，uscdb/dataconfiguration/ALLMML)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | USCDB |
+| **测试场景** | 正常情况 - 套1 存在 ALLME_*.txt 文件 |
+| **测试数据** |
+```
+USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/
+└── uscdb/dataconfiguration/ALLMML/
+    └── ALLME_USCDBxx.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 USCDB_NE=xxx 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 USCDB_NE=xxx 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-110 - USCDB (套2，dataconfiguration)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | USCDB |
+| **测试场景** | 正常情况 - 套2 存在 ALLME_*.txt 文件 |
+| **测试数据** |
+```
+USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/
+└── dataconfiguration/
+    └── ALLME_USCDBxx.txt
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 USCDB_NE=xxx 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 USCDB_NE=xxx 的状态为 "Valid" |
+
+---
+
+#### 用例 ID：NE-T-111 - CCF (CNAE 内部: ICG9815，正常，有 .zip 文件)
+
+| 项目 | 说明 |
+|------|------|
+| **网元类型** | CCF (CNAE 内部: ICG9815) |
+| **测试场景** | 正常情况 - 存在 .zip 文件 |
+| **测试数据** |
+```
+CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/
+└── dataconfiguration/
+    └── data.zip
+```
+| **预期结果** | Status: Valid (绿色) |
+| **验证步骤** | 1. 选择包含 CCF_NE=xxx 的 NIC 包<br>2. 点击"Start Validation"<br>3. 检查表格中 CCF_NE=xxx 的状态为 "Valid" |
+
+---
+
+### 10.4 测试覆盖矩阵
+
+| 网元类型 | 正常情况 | 异常情况 | 测试状态 |
+|----------|---------|---------|---------|
+| vUGW | ✓ 3个部署形态完整<br>✗ 3个部署形态都不满足<br>✗ CGW 部署不完整<br>✗ DGW 部署不完整<br>✗ UGW 部署不完整 | 待执行 |
+| vCG | ✓ 完整<br>✗ 缺少 cg/mml<br>✗ 缺少 vnrs/mml<br>✗ 缺少 0/mml | 待执行 |
+| vUSN | ✓ 完整<br>✗ 缺少 omo/mml<br>✗ 缺少 vnrs/mml<br>✗ 缺少 0/mml<br>✗ 缺少 usn/mml | 待执行 |
+| ATS | ✓ 有 ALLME_*.txt<br>✓ 有 .zip<br>✓ 有 .tar.gz<br>✗ 目录不存在<br>✗ 无任何文件 | 待执行 |
+| CSCF | ✓ 有 ALLME_*.txt<br>✓ 有 .zip<br>✓ 有 .tar.gz | 待执行 |
+| UDG | ✓ 有 .zip<br>✓ 有 .tar.gz<br>✓ 有 ALLME_*.txt<br>✗ 无任何文件 | 待执行 |
+| UPCC | ✓ 有 .zip<br>✓ 有 .tar.gz<br>✓ 有 ALLME_*.txt | 待执行 |
+| UPCF | ✓ 有 .zip<br>✓ 有 .tar.gz<br>✓ 有 ALLME_*.txt | 待执行 |
+| HSS9860 | ✓ 有 .zip<br>✓ 有 .tar.gz<br>✓ 有 ALLME_*.txt | 待执行 |
+| UDM | ✓ 有 *_UDM_*.tar.gz<br>✓ 有 ALLME_*.txt<br>✗ 无任何文件 | 待执行 |
+| ENS | ✓ 有 .zip<br>✓ 有 .tar.gz<br>✓ 有 ALLME_*.txt | 待执行 |
+| USCDB | ✓ 套1 (uscdb)<br>✓ 套2 (dataconfiguration)<br>✗ 无任何文件 | 待执行 |
+| CCF (ICG9815) | ✓ 有 .zip<br>✓ 有 .tar.gz<br>✓ 有 ALLME_*.txt | 待执行 |
+
+---
+
+## 11. 配置填写示例
 
 ### 10.1 配置格式说明
 
@@ -1239,7 +1578,7 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 
 ---
 
-## 11. 设计决策记录
+## 12. 设计决策记录
 
 | 决策点 | 方案 A | 方案 B | 选择 | 原因 |
 |---------|--------|--------|------|------|
@@ -1251,7 +1590,7 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 
 ---
 
-## 12. 实现计划
+## 13. 实现计划
 
 ### 12.1 开发阶段
 
