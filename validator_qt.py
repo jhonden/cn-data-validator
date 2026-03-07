@@ -265,13 +265,19 @@ class ValidatorApp(QMainWindow):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)  # Details 列也改为 ResizeToContents
+
+        # 设置 Details 列最小宽度，避免内容被挤压
+        header.setMinimumSectionSize(6, 300)
 
         # Set table style
         self.table.setAlternatingRowColors(True)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.verticalHeader().setVisible(False)
+
+        # 启用 word wrap，让长文本自动换行
+        self.table.setWordWrap(True)
 
         layout.addWidget(self.table)
 
@@ -555,6 +561,12 @@ class ValidatorApp(QMainWindow):
             elif col == 4:
                 item.setForeground(QColor(package_color))
                 item.setFont(QFont("Arial", 9))
+            # Details column (column 6): add tooltip and enable word wrap
+            elif col == 6:
+                item.setToolTip(str(item_text))  # Tooltip 显示完整内容
+                # 启用 word wrap
+                item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+
             self.table.setItem(row, col, item)
 
     def _format_size(self, size):
