@@ -323,6 +323,76 @@ CCF, SPSV3, USC, HSS9860, UDM, UPCC, UPCF, ENS, USCDB, CSP, CGPOMU
 
 ---
 
+##### 校验规则3：采集时间范围检查
+
+**规则描述**：校验 NIC 包的采集时间范围是否大于 24 小时。
+
+**判断逻辑**：
+- 采集时间范围 ≥ 24 小时 → **校验通过**（可能带有其他警告）
+- 采集时间范围 < 24 小时 → **校验失败**
+
+**数据来源**：
+- 从 `xxx_report.tar.gz` 中的 `taskparam/TaskExtValue.xml` 中解析
+- 查找 `CollectRange` 标签，格式：开始时间|结束时间
+- 示例：`2025-03-20 21:15:18|2025-03-27 21:15:18`
+- 计算时间差（小时）
+
+**示例场景**：
+```
+场景1：采集时间范围 ≥ 24 小时
+- CollectRange: 2025-03-20 21:15:18|2025-03-27 21:15:18
+- 时间差：168 小时（7 天）
+结果：Valid（可能有其他警告）
+
+场景2：采集时间范围 < 24 小时
+- CollectRange: 2025-03-20 21:15:18|2025-03-21 09:45:18
+- 时间差：12.5 小时
+结果：Invalid，提示：NIC package collection time range is too short, cannot support
+       network assessment requirements. System requires at least 24h, please re-collect.
+       (Actual: 12.50h)
+```
+
+**显示逻辑**：
+| 条件 | 状态 | 颜色 | 提示信息 |
+|------|------|------|----------|
+| 采集时间范围 < 24h | Invalid | 红色 #F44336 | NIC package collection time range is too short, cannot support network assessment requirements. System requires at least 24h, please re-collect. (Actual: 12.50h) |
+| 采集时间范围 ≥ 24h | Valid | 绿色 #4CAF50 | - |
+
+---
+
+##### 校验规则4：匿名化方式采集检查
+
+**规则描述**：校验 NIC 包是否使用匿名化方式采集。
+
+**判断逻辑**：
+- 非匿名化（AnonymousAuthMode = false）→ **校验通过**
+- 匿名化（AnonymousAuthMode = true）→ **校验失败**
+
+**数据来源**：
+- 从 `xxx_report.tar.gz` 中的 `taskparam/TaskExtValue.xml` 中解析
+- 查找 `AnonymousAuthMode` 标签
+- `true` 代表匿名化，`false` 代表非匿名化
+
+**示例场景**：
+```
+场景1：非匿名化采集
+- AnonymousAuthMode: false
+结果：Valid（可能有其他警告）
+
+场景2：匿名化采集
+- AnonymousAuthMode: true
+结果：Invalid，提示：The NIC package was collected in anonymous mode, cannot meet
+       network assessment requirements. Please re-collect in non-anonymous mode.
+```
+
+**显示逻辑**：
+| 条件 | 状态 | 颜色 | 提示信息 |
+|------|------|------|----------|
+| 匿名化采集（true） | Invalid | 红色 #F44336 | The NIC package was collected in anonymous mode, cannot meet network assessment requirements. Please re-collect in non-anonymous mode. |
+| 非匿名化采集（false） | Valid | 绿色 #4CAF50 | - |
+
+---
+
 #### 3.4.3 网元数据文件夹检查
 
 **文件夹命名规则**：
@@ -363,13 +433,15 @@ ATS_NE=1044_IP_10_140_2_10_59_PPR_ATS01
 
 ---
 
-#### 3.4.5 错误处理优先级
+#### 3.4.6 错误处理优先级
 
 校验错误按以下优先级显示（高到低）：
 1. **缺失 neinfo.txt**（Invalid）
-2. **所有网元类型都不支持**（Invalid）
-3. **缺失网元数据文件夹**（Warning）
-4. **缺失关键文件**（Warning）
+2. **匿名化采集**（Invalid）
+3. **采集时间范围过短**（Invalid）
+4. **所有网元类型都不支持**（Invalid）
+5. **缺失网元数据文件夹**（Warning）
+6. **缺失关键文件**（Warning）
 
 ---
 
@@ -585,6 +657,8 @@ GUI/CLI 显示结果
 - [x] 网元类型支持检查（校验规则1）
 - [x] 网元数据文件夹检查
 - [x] 关键文件完整性检查（static_mml、dynamic_mml、statistics）
+- [x] 采集时间范围检查（校验规则3）
+- [x] 匿名化方式采集检查（校验规则4）
 - [ ] 话统数据文件（`话统数据.json`）
 - [ ] 性能数据文件（`性能数据.csv`）
 - [ ] 告警数据文件（`告警数据.log`）
@@ -592,11 +666,14 @@ GUI/CLI 显示结果
 
 **校验方式**：
 1. 解压 NIC 包
-2. 查找并解析 neinfo.txt
-3. 检查网元类型是否在支持列表中
-4. 检查网元数据文件夹是否存在
-5. 检查关键文件（static_mml、dynamic_mml、statistics）是否存在
-6. 生成缺失文件告警
+2. 解压 report.tar.gz 文件
+3. 查找并解析 neinfo.txt
+4. 检查网元类型是否在支持列表中
+5. 检查采集时间范围（从 TaskExtValue.xml 的 CollectRange 标签）
+6. 检查匿名化模式（从 TaskExtValue.xml 的 AnonymousAuthMode 标签）
+7. 检查网元数据文件夹是否存在
+8. 检查关键文件（static_mml、dynamic_mml、statistics）是否存在
+9. 生成缺失文件告警
 
 **实现状态**：部分实现（已完成基础校验，待扩展更多文件类型）
 
@@ -694,7 +771,7 @@ rules:
 | 文件格式校验 | ✅ 已实现 | P0 | 支持 ZIP/TAR/TAR.GZ/XLSX |
 | 目录递归扫描 | ✅ 已实现 | P0 | 扫描所有子目录 |
 | NIC 包识别 | ✅ 已实现 | P0 | 基于内部结构识别 |
-| NIC 包深度校验 | ✅ 已实现 | P0 | neinfo.txt 解析、网元类型检查、文件完整性检查 |
+| NIC 包深度校验 | ✅ 已实现 | P0 | neinfo.txt 解析、网元类型检查、采集时间范围、匿名化模式、文件完整性检查 |
 | PyQt6 GUI | ✅ 已实现 | P0 | 主要 GUI 实现 |
 | 命令行界面 | ✅ 已实现 | P1 | 无 GUI 依赖 |
 | 结果导出 | ✅ 已实现 | P1 | TXT/CSV 格式 |
@@ -783,6 +860,8 @@ rules:
 - ✅ 校验规则实现
   - 规则1：所有网元类型都不支持时提示无效
   - 规则2：缺失 neinfo.txt 时提示格式非法
+  - 规则3：采集时间范围 < 24h 时提示无效
+  - 规则4：匿名化方式采集时提示无效
 - ✅ 表格筛选功能（文件名、文件类型、异常信息）
 - ✅ 优化 Details 列显示（支持长内容）
 
