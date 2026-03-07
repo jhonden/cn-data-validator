@@ -125,8 +125,14 @@ class NICValidator:
             self._check_required_files(result)
 
             # 5. 判断整体校验结果
-            if result['unsupported_types'] or result['missing_folders'] or result['missing_files']:
+            # 只有当所有网元类型都不支持时，才标记为无效
+            # 如果有任何一个网元类型支持，即使有其他不支持的，也算部分有效
+            all_unsupported = len(self.ne_instances) > 0 and len(result['unsupported_types']) == len(self.ne_instances)
+
+            if result['missing_folders'] or result['missing_files'] or all_unsupported:
                 result['valid'] = False
+                # 标记是否完全不支持的包
+                result['all_unsupported'] = all_unsupported
 
         except Exception as e:
             result['valid'] = False

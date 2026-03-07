@@ -265,10 +265,10 @@ class ValidatorApp(QMainWindow):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)  # Details 列也改为 ResizeToContents
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Interactive)  # Details 列设为 Interactive 模式
 
-        # 设置 Details 列最小宽度，避免内容被挤压
-        header.setMinimumSectionSize(6, 300)
+        # 设置 Details 列初始宽度为 300px
+        header.resizeSection(6, 300)
 
         # Set table style
         self.table.setAlternatingRowColors(True)
@@ -444,7 +444,7 @@ class ValidatorApp(QMainWindow):
                 if nic_validation:
                     if not nic_validation.get('valid', True):
                         # NIC 校验失败
-                        status = 'Warning'
+                        # 检查是否完全不支持的包                        all_unsupported = nic_validation.get("all_unsupported", False)                        if all_unsupported:                            # 完全不支持的包：显示为 Invalid 状态                            status = "Invalid"                            status_color = "#F44336"  # Red                            detail = "Invalid NIC package: No supported network elements found, no need to collect"                        else:                            # 部分不支持的包：显示为 Warning 状态                            status = "Warning"                            status_color = "#FF9800"  # Orange                        status = 'Warning'
                         status_color = '#FF9800'  # Orange
 
                         # 收集所有问题
