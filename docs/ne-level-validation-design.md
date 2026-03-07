@@ -897,174 +897,323 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 
 #### 9.3.1 UDG
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `UDG_NE=xxx` |
 | **配置文件键名** | `UDG`（与 neinfo.txt 一致） |
 | **匹配模式** | any（任意一个满足即可） |
-| **路径** | configuration/static |
-| **文件模式** | `static_mml.txt` |
+| **路径** | CSP/Configuration |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `UDG_NE=xxx`）
 2. 查找配置中的 `UDG` 规则
-3. 检查路径：`{网元数据文件夹}/configuration/static/`
-4. 判断条件：该目录下只要存在 `static_mml.txt` 文件即通过
+3. 检查路径：`{网元数据文件夹}/CSP/Configuration/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: UDG_NE=xxx_IP_xxx_xxx_PPR_UDGxx
+有效文件:
+  - UDG_NE=xxx_IP_xxx_xxx_PPR_UDGxx/CSP/Configuration/data.zip
+  或
+  - UDG_NE=xxx_IP_xxx_xxx_PPR_UDGxx/CSP/Configuration/data.tar.gz
+  或
+  - UDG_NE=xxx_IP_xxx_xxx_PPR_UDGxx/CSP/Configuration/ALLME_UDGxx.txt
+```
 
 ---
 
 #### 9.3.2 CCF
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `CCF_NE=xxx` |
 | **配置文件键名** | `CCF`（与 neinfo.txt 一致） |
+| **CNAE 内部叫法** | ICG9815 |
 | **匹配模式** | any（任意一个满足即可） |
 | **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `CCF_NE=xxx`）
-2. 查找配置中的 `CCF` 规则
+2. 查找配置中的 `CCF` 规则（不是 ICG9815）
 3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx
+有效文件:
+  - CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/dataconfiguration/data.zip
+  或
+  - CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/dataconfiguration/data.tar.gz
+  或
+  - CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/dataconfiguration/ALLME_CCFxx.txt
+```
 
 ---
 
 #### 9.3.3 HSS9860
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `HSS9860_NE=xxx` |
 | **配置文件键名** | `HSS9860`（与 neinfo.txt 一致） |
 | **匹配模式** | any（任意一个满足即可） |
 | **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `HSS9860_NE=xxx`）
 2. 查找配置中的 `HSS9860` 规则
 3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: HSS9860_NE=xxx_IP_xxx_xxx_PPR_HSS9860xx
+有效文件:
+  - HSS9860_NE=xxx_IP_xxx_xxx_PPR_HSS9860xx/dataconfiguration/data.zip
+  或
+  - HSS9860_NE=xxx_IP_xxx_xxx_PPR_HSS9860xx/dataconfiguration/data.tar.gz
+  或
+  - HSS9860_NE=xxx_IP_xxx_xxx_PPR_HSS9860xx/dataconfiguration/ALLME_HSS9860xx.txt
+```
 
 ---
 
 #### 9.3.4 UDM
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `UDM_NE=xxx` |
 | **配置文件键名** | `UDM`（与 neinfo.txt 一致） |
 | **匹配模式** | any（任意一个满足即可） |
-| **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **路径** | UDM/MML/MMLConfig |
+| **文件模式** | `*_MDM_*.zip`, `*_UDM_*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `UDM_NE=xxx`）
 2. 查找配置中的 `UDM` 规则
-3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+3. 检查路径：`{网元数据文件夹}/UDM/MML/MMLConfig/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 以 `_MDM_` 开头的 `.zip` 文件
+   - 以 `_UDM_` 开头的 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: UDM_NE=xxx_IP_xxx_xxx_PPR_UDMxx
+有效文件:
+  - UDM_NE=xxx_IP_xxx_xxx_PPR_UDMxx/UDM/MML/MMLConfig/data_MDM_xxx.zip
+  或
+  - UDM_NE=xxx_IP_xxx_xxx_PPR_UDMxx/UDM/MML/MMLConfig/data_UDM_xxx.tar.gz
+  或
+  - UDM_NE=xxx_IP_xxx_xxx_PPR_UDMxx/UDM/MML/MMLConfig/ALLME_UDMxx.txt
+```
 
 ---
 
 #### 9.3.5 UPCC
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `UPCC_NE=xxx` |
 | **配置文件键名** | `UPCC`（与 neinfo.txt 一致） |
 | **匹配模式** | any（任意一个满足即可） |
-| **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **路径** | UPCC |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `UPCC_NE=xxx`）
 2. 查找配置中的 `UPCC` 规则
-3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+3. 检查路径：`{网元数据文件夹}/UPCC/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: UPCC_NE=xxx_IP_xxx_xxx_PPR_UPCCxx
+有效文件:
+  - UPCC_NE=xxx_IP_xxx_xxx_PPR_UPCCxx/UPCC/data.zip
+  或
+  - UPCC_NE=xxx_IP_xxx_xxx_PPR_UPCCxx/UPCC/data.tar.gz
+  或
+  - UPCC_NE=xxx_IP_xxx_xxx_PPR_UPCCxx/UPCC/ALLME_UPCCxx.txt
+```
 
 ---
 
 #### 9.3.6 UPCF
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `UPCF_NE=xxx` |
 | **配置文件键名** | `UPCF`（与 neinfo.txt 一致） |
 | **匹配模式** | any（任意一个满足即可） |
-| **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **路径** | UPCF/dataconfiguration/ALLMML |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `UPCF_NE=xxx`）
 2. 查找配置中的 `UPCF` 规则
-3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+3. 检查路径：`{网元数据文件夹}/UPCF/dataconfiguration/ALLMML/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: UPCF_NE=xxx_IP_xxx_xxx_PPR_UPCFxx
+有效文件:
+  - UPCF_NE=xxx_IP_xxx_xxx_PPR_UPCFxx/UPCF/dataconfiguration/ALLMML/data.zip
+  或
+  - UPCF_NE=xxx_IP_xxx_xxx_PPR_UPCFxx/UPCF/dataconfiguration/ALLMML/data.tar.gz
+  或
+  - UPCF_NE=xxx_IP_xxx_xxx_PPR_UPCFxx/UPCF/dataconfiguration/ALLMML/ALLME_UPCFxx.txt
+```
 
 ---
 
 #### 9.3.7 ENS
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `ENS_NE=xxx` |
 | **配置文件键名** | `ENS`（与 neinfo.txt 一致） |
 | **匹配模式** | any（任意一个满足即可） |
 | **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `ENS_NE=xxx`）
 2. 查找配置中的 `ENS` 规则
 3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: ENS_NE=xxx_IP_xxx_xxx_PPR_ENSxx
+有效文件:
+  - ENS_NE=xxx_IP_xxx_xxx_PPR_ENSxx/dataconfiguration/data.zip
+  或
+  - ENS_NE=xxx_IP_xxx_xxx_PPR_ENSxx/dataconfiguration/data.tar.gz
+  或
+  - ENS_NE=xxx_IP_xxx_xxx_PPR_ENSxx/dataconfiguration/ALLME_ENSxx.txt
+```
 
 ---
 
 #### 9.3.8 USCDB
 
-| 项目 | 配置（待核对） |
+**USCDB** 是特殊的网元类型，有两套不同的逻辑，满足任意一套即通过。使用 `custom` 匹配模式。
+
+| 项目 | 配置 |
 |------|------|
 | **neinfo.txt 标识** | `USCDB_NE=xxx` |
 | **配置文件键名** | `USCDB`（与 neinfo.txt 一致） |
-| **匹配模式** | any（任意一个满足即可） |
-| **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **匹配模式** | custom（特殊校验器） |
 | **必需校验** | true |
+
+**两套校验逻辑**（满足任意一套即通过）：
+
+**套1**：
+| 路径 | 文件模式 |
+|------|---------|
+| uscdb/dataconfiguration/ALLMML | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
+
+**套2**：
+| 路径 | 文件模式 |
+|------|---------|
+| dataconfiguration | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 
 **校验逻辑**：
 1. 从 neinfo.txt 解析出网元类型（如 `USCDB_NE=xxx`）
-2. 查找配置中的 `USCDB` 规则
-3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+2. 使用自定义校验器 `USCDB_validator.py`
+3. 依次检查两套逻辑：
+   - 检查 `{网元数据文件夹}/uscdb/dataconfiguration/ALLMML/`，存在 `*.zip` 或 `*.tar.gz` 或 `ALLME_*.txt` 文件
+   - 或检查 `{网元数据文件夹}/dataconfiguration/`，存在 `*.zip` 或 `*.tar.gz` 或 `ALLME_*.txt` 文件
+4. 只要任意一套满足，校验即通过
+
+**数据示例**：
+```
+网元文件夹: USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx
+
+套1有效:
+  - USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/uscdb/dataconfiguration/ALLMML/data.zip
+  或
+  - USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/uscdb/dataconfiguration/ALLMML/data.tar.gz
+  或
+  - USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/uscdb/dataconfiguration/ALLMML/ALLME_USCDBxx.txt
+
+套2有效:
+  - USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/dataconfiguration/data.zip
+  或
+  - USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/dataconfiguration/data.tar.gz
+  或
+  - USCDB_NE=xxx_IP_xxx_xxx_PPR_USCDBxx/dataconfiguration/ALLME_USCDBxx.txt
+```
 
 ---
 
 #### 9.3.9 ICG9815
 
-| 项目 | 配置（待核对） |
+| 项目 | 配置（已核对） |
 |------|------|
-| **neinfo.txt 标识** | `ICG9815_NE=xxx` |
-| **配置文件键名** | `ICG9815`（与 neinfo.txt 一致） |
+| **neinfo.txt 标识** | `CCF_NE=xxx` |
+| **配置文件键名** | `CCF`（与 neinfo.txt 一致） |
+| **CNAE 内部叫法** | ICG9815 |
 | **匹配模式** | any（任意一个满足即可） |
 | **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
 | **必需校验** | true |
 
 **校验逻辑**：
-1. 从 neinfo.txt 解析出网元类型（如 `ICG9815_NE=xxx`）
-2. 查找配置中的 `ICG9815` 规则
+1. 从 neinfo.txt 解析出网元类型（如 `CCF_NE=xxx`）
+2. 查找配置中的 `CCF` 规则（不是 ICG9815）
 3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+**数据示例**：
+```
+网元文件夹: CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx
+有效文件:
+  - CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/dataconfiguration/data.zip
+  或
+  - CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/dataconfiguration/data.tar.gz
+  或
+  - CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/dataconfiguration/ALLME_CCFxx.txt
+```
 
 ---
+
+### 9.4 不需要校验的网元类型
 
 
 ### 9.4 不需要校验的网元类型
