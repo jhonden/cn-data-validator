@@ -19,7 +19,8 @@ if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QFileDialog, QTableWidget, QTableWidgetItem,
-    QHeaderView, QMessageBox, QProgressBar, QStatusBar, QFrame
+    QHeaderView, QMessageBox, QProgressBar, QStatusBar, QFrame,
+    QLineEdit, QComboBox
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
@@ -93,6 +94,11 @@ class ValidatorApp(QMainWindow):
         self.current_dir = ""
         self.validation_thread = None
         self.scanner = None
+
+        # Filter related attributes
+        self.all_valid_files = []  # 存储所有有效文件数据
+        self.all_invalid_files = []  # 存储所有无效文件数据
+        self.filter_widgets = {}  # 存储筛选控件
 
         self.init_ui()
 
@@ -173,6 +179,78 @@ class ValidatorApp(QMainWindow):
         line.setFrameShape(QFrame.Shape.HLine)
         line.setFrameShadow(QFrame.Shadow.Sunken)
         layout.addWidget(line)
+
+        # Filter bar
+        filter_layout = QHBoxLayout()
+
+        # Filter label
+        filter_label = QLabel("Filter:")
+        filter_label.setStyleSheet("font-weight: bold; color: #666;")
+        filter_layout.addWidget(filter_label)
+
+        # Filename filter
+        self.filter_widgets['filename'] = QLineEdit()
+        self.filter_widgets['filename'].setPlaceholderText("Filename...")
+        self.filter_widgets['filename'].setFixedWidth(150)
+        self.filter_widgets['filename'].textChanged.connect(self.apply_filters)
+        filter_layout.addWidget(QLabel("Name:"))
+        filter_layout.addWidget(self.filter_widgets['filename'])
+
+        # Format filter (ComboBox)
+        self.filter_widgets['format'] = QComboBox()
+        self.filter_widgets['format'].addItem("All Formats")
+        self.filter_widgets['format'].addItem("ZIP")
+        self.filter_widgets['format'].addItem("TAR.GZ")
+        self.filter_widgets['format'].addItem("TAR")
+        self.filter_widgets['format'].addItem("XLSX")
+        self.filter_widgets['format'].setFixedWidth(120)
+        self.filter_widgets['format'].currentTextChanged.connect(self.apply_filters)
+        filter_layout.addWidget(QLabel("Format:"))
+        filter_layout.addWidget(self.filter_widgets['format'])
+
+        # Status filter (ComboBox)
+        self.filter_widgets['status'] = QComboBox()
+        self.filter_widgets['status'].addItem("All")
+        self.filter_widgets['status'].addItem("Valid")
+        self.filter_widgets['status'].addItem("Invalid")
+        self.filter_widgets['status'].setFixedWidth(100)
+        self.filter_widgets['status'].currentTextChanged.connect(self.apply_filters)
+        filter_layout.addWidget(QLabel("Status:"))
+        filter_layout.addWidget(self.filter_widgets['status'])
+
+        # Details filter
+        self.filter_widgets['details'] = QLineEdit()
+        self.filter_widgets['details'].setPlaceholderText("Details/Notes...")
+        self.filter_widgets['details'].setFixedWidth(150)
+        self.filter_widgets['details'].textChanged.connect(self.apply_filters)
+        filter_layout.addWidget(QLabel("Details:"))
+        filter_layout.addWidget(self.filter_widgets['details'])
+
+        # Clear filters button
+        self.clear_filter_btn = QPushButton("Clear Filters")
+        self.clear_filter_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF5722;
+                color: white;
+                border: none;
+                padding: 4px 12px;
+                border-radius: 3px;
+                font-size: 10px;
+            }
+            QPushButton:hover {
+                background-color: #E64A19;
+            }
+        """)
+        self.clear_filter_btn.clicked.connect(self.clear_filters)
+        filter_layout.addWidget(self.clear_filter_btn)
+
+        filter_layout.addStretch()
+        layout.addLayout(filter_layout)
+
+        # Filter result label
+        self.filter_result_label = QLabel("")
+        self.filter_result_label.setStyleSheet("color: #666; font-size: 10px;")
+        layout.addWidget(self.filter_result_label)
 
         # Table
         self.table = QTableWidget()
@@ -330,7 +408,8 @@ class ValidatorApp(QMainWindow):
             )
             return
 
-        # Display valid files
+        # 保存原始数据用于筛选
+        self.all_valid_files = []
         for file_info in self.scanner.valid_files:
             # Get package type and details
             package_type = file_info.get('package_type', 'Unknown')
@@ -355,31 +434,37 @@ class ValidatorApp(QMainWindow):
                 if note:
                     detail = note
 
-            self.add_file_row(
-                file_info['name'],
-                file_info['relative_path'],
-                self._format_size(file_info['size']),
-                self._get_file_type(file_info['name']),
-                package_type,
-                'Valid',
-                detail,
-                '#4CAF50',  # Status color (green)
-                package_color  # Package type color
-            )
+            self.all_valid_files.append({
+                'file_info': file_info,
+                'name': file_info['name'],
+                'path': file_info['relative_path'],
+                'size': self._format_size(file_info['size']),
+                'format': self._get_file_type(file_info['name']),
+                'package_type': package_type,
+                'status': 'Valid',
+                'detail': detail,
+                'status_color': '#4CAF50',
+                'package_color': package_color
+            })
 
-        # Display invalid files
+        # 保存无效文件数据
+        self.all_invalid_files = []
         for file_info in self.scanner.illegal_files:
-            self.add_file_row(
-                file_info['name'],
-                file_info['relative_path'],
-                self._format_size(file_info['size']),
-                self._get_file_type(file_info['name']),
-                '-',
-                'Invalid',
-                'Invalid file format',
-                '#F44336',  # Status color (red)
-                '#666666'  # Package type color (gray)
-            )
+            self.all_invalid_files.append({
+                'file_info': file_info,
+                'name': file_info['name'],
+                'path': file_info['relative_path'],
+                'size': self._format_size(file_info['size']),
+                'format': self._get_file_type(file_info['name']),
+                'package_type': '-',
+                'status': 'Invalid',
+                'detail': 'Invalid file format',
+                'status_color': '#F44336',
+                'package_color': '#666666'
+            })
+
+        # 应用筛选并显示
+        self.apply_filters()
 
         # Update statistics
         self.stats_label.setText(
@@ -450,6 +535,83 @@ class ValidatorApp(QMainWindow):
             return 'XLSX'
         else:
             return 'Unknown'
+
+    def apply_filters(self):
+        """应用筛选条件并更新表格显示"""
+        # 获取筛选条件
+        filename_filter = self.filter_widgets['filename'].text().lower().strip()
+        format_filter = self.filter_widgets['format'].currentText()
+        status_filter = self.filter_widgets['status'].currentText()
+        details_filter = self.filter_widgets['details'].text().lower().strip()
+
+        # 清空表格
+        self.table.setRowCount(0)
+
+        # 筛选并显示有效文件
+        for file_data in self.all_valid_files:
+            if self._matches_filter(file_data, filename_filter, format_filter, status_filter, details_filter):
+                self.add_file_row(
+                    file_data['name'],
+                    file_data['path'],
+                    file_data['size'],
+                    file_data['format'],
+                    file_data['package_type'],
+                    file_data['status'],
+                    file_data['detail'],
+                    file_data['status_color'],
+                    file_data['package_color']
+                )
+
+        # 筛选并显示无效文件
+        for file_data in self.all_invalid_files:
+            if self._matches_filter(file_data, filename_filter, format_filter, status_filter, details_filter):
+                self.add_file_row(
+                    file_data['name'],
+                    file_data['path'],
+                    file_data['size'],
+                    file_data['format'],
+                    file_data['package_type'],
+                    file_data['status'],
+                    file_data['detail'],
+                    file_data['status_color'],
+                    file_data['package_color']
+                )
+
+        # 更新筛选结果标签
+        total_files = len(self.all_valid_files) + len(self.all_invalid_files)
+        displayed_files = self.table.rowCount()
+        if displayed_files == total_files:
+            self.filter_result_label.setText(f"Showing all {total_files} records")
+        else:
+            self.filter_result_label.setText(f"Showing {displayed_files} of {total_files} records")
+
+    def _matches_filter(self, file_data, filename_filter, format_filter, status_filter, details_filter):
+        """检查文件数据是否匹配筛选条件"""
+        # Filename filter (文本模糊匹配)
+        if filename_filter and filename_filter not in file_data['name'].lower():
+            return False
+
+        # Format filter
+        if format_filter != "All Formats" and file_data['format'] != format_filter:
+            return False
+
+        # Status filter
+        if status_filter != "All" and file_data['status'] != status_filter:
+            return False
+
+        # Details filter (文本模糊匹配)
+        if details_filter and details_filter not in file_data['detail'].lower():
+            return False
+
+        return True
+
+    def clear_filters(self):
+        """清除所有筛选条件"""
+        self.filter_widgets['filename'].clear()
+        self.filter_widgets['format'].setCurrentIndex(0)  # All Formats
+        self.filter_widgets['status'].setCurrentIndex(0)  # All
+        self.filter_widgets['details'].clear()
+        self.apply_filters()
 
     def export_results(self):
         """Export results"""
