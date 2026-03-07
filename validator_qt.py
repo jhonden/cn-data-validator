@@ -39,7 +39,8 @@ class ValidationThread(QThread):
     def run(self):
         try:
             scanner = FileScanner(self.directory)
-            scanner.scan_directory()
+            # 传递进度回调，发送实际进度信号
+            scanner.scan_directory(progress_callback=lambda p: self.progress.emit(p))
             self.finished.emit(scanner, "")
         except Exception as e:
             self.finished.emit(None, str(e))
@@ -243,6 +244,30 @@ class ValidatorApp(QMainWindow):
     def display_results(self):
         """Display results"""
         stats = self.scanner.get_statistics()
+
+        # Check if no files found
+        if stats['total_files'] == 0:
+            # Display empty state
+            self.table.setRowCount(1)
+            empty_item = QTableWidgetItem("No files found in the selected directory")
+            empty_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            empty_item.setForeground(QColor("#999999"))
+            empty_item.setFont(QFont("Arial", 12, QFont.Weight.Normal))
+            self.table.setItem(0, 0, empty_item)
+            self.table.setSpan(0, 0, 1, 7)  # Merge all columns
+
+            # Update statistics
+            self.stats_label.setText("Total: 0 files | Valid: 0 | Invalid: 0")
+            self.statusBar.showMessage("Scan completed: No files found")
+            self.export_btn.setEnabled(False)
+
+            QMessageBox.information(
+                self,
+                "Scan Completed",
+                "No files found in the selected directory.\n\n"
+                "Please select a different directory that contains data package files."
+            )
+            return
 
         # Display valid files
         for file_info in self.scanner.valid_files:

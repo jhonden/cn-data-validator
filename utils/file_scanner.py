@@ -12,11 +12,21 @@ class FileScanner:
         self.valid_files = []
         self.identifier = PackageIdentifier()  # 包识别器
 
-    def scan_directory(self):
-        """递归扫描目录"""
+    def scan_directory(self, progress_callback=None):
+        """递归扫描目录
+
+        Args:
+            progress_callback: 进度回调函数，接收 0-100 的进度值
+        """
         self.illegal_files = []
         self.valid_files = []
 
+        # 先统计文件总数
+        total_files = 0
+        for root, dirs, files in os.walk(self.root_dir):
+            total_files += len(files)
+
+        processed = 0
         for root, dirs, files in os.walk(self.root_dir):
             for file in files:
                 file_path = os.path.join(root, file)
@@ -46,6 +56,12 @@ class FileScanner:
                         'package_type': None,
                         'package_details': {'note': '文件格式非法'}
                     })
+
+                # 报告进度
+                processed += 1
+                if progress_callback and total_files > 0:
+                    progress = int((processed / total_files) * 100)
+                    progress_callback(progress)
 
     def _is_valid_file(self, filename):
         """检查文件格式是否合法"""

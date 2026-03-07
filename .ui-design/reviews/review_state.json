@@ -1,0 +1,17 @@
+{
+  "review_id": "validator_qt_20260307",
+  "target": "validator_qt.py",
+  "focus_areas": ["visual", "usability", "code", "performance"],
+  "context": "数据包校验工具：选择路径、执行校验、展示结果、导出数据",
+  "platform": "desktop",
+  "status": "complete",
+  "started_at": "2026-03-07T10:00:00",
+  "completed_at": "2026-03-07T10:30:00",
+  "issues_found": 8,
+  "severity_counts": {
+    "critical": 0,
+    "major": 3,
+    "minor": 3,
+    "suggestion": 2
+  }
+}
