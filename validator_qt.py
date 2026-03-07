@@ -25,6 +25,14 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 from utils.file_scanner import FileScanner
 from utils.package_identifier import PackageIdentifier
+from exceptions import (
+    ValidationException,
+    DirectoryNotFoundException,
+    PermissionDeniedException,
+    InvalidPackageException,
+    FileSystemException,
+    MemoryException
+)
 
 
 class ValidationThread(QThread):
@@ -38,12 +46,45 @@ class ValidationThread(QThread):
 
     def run(self):
         try:
+            # Check if directory exists
+            if not os.path.exists(self.directory):
+                raise DirectoryNotFoundException(self.directory)
+
+            # Check if directory is accessible
+            if not os.access(self.directory, os.R_OK):
+                raise PermissionDeniedException(self.directory)
+
             scanner = FileScanner(self.directory)
             # 传递进度回调，发送实际进度信号
             scanner.scan_directory(progress_callback=lambda p: self.progress.emit(p))
             self.finished.emit(scanner, "")
+
+        except (DirectoryNotFoundException, PermissionDeniedException,
+                InvalidPackageException, FileSystemException, MemoryException) as e:
+            # 自定义异常，直接传递
+            self.finished.emit(None, e)
+
+        except PermissionError as e:
+            # 权限错误转换为自定义异常
+            self.finished.emit(None, PermissionDeniedException(str(e)))
+
+        except FileNotFoundError as e:
+            # 文件未找到转换为自定义异常
+            self.finished.emit(None, DirectoryNotFoundException(str(e)))
+
+        except MemoryError:
+            # 内存不足
+            self.finished.emit(None, MemoryException())
+
+        except OSError as e:
+            # 其他文件系统错误
+            self.finished.emit(None, FileSystemException(str(e)))
+
         except Exception as e:
-            self.finished.emit(None, str(e))
+            # 其他未知错误
+            import traceback as tb
+            error_details = f"{str(e)}\n\n{tb.format_exc()}"
+            self.finished.emit(None, error_details)
 
 
 class ValidatorApp(QMainWindow):
@@ -234,8 +275,28 @@ class ValidatorApp(QMainWindow):
         self.progress_bar.setVisible(False)
 
         if error:
-            QMessageBox.critical(self, "Error", f"An error occurred during validation:\n{error}")
-            self.stats_label.setText("Validation failed")
+            # 根据异常类型显示不同的错误提示
+            if isinstance(error, ValidationException):
+                title = "Error"
+                message = f"{error.message}\n\n💡 Suggestion: {error.suggestion}"
+                icon = QMessageBox.Icon.Warning
+                self.stats_label.setText("Validation failed")
+
+            elif isinstance(error, str):
+                # 未知错误（字符串形式的错误信息）
+                title = "Unknown Error"
+                message = f"An unknown error occurred during validation:\n\n{error}\n\n" \
+                         "Please contact the support team."
+                icon = QMessageBox.Icon.Critical
+                self.stats_label.setText("Validation failed")
+
+            else:
+                title = "Error"
+                message = f"An error occurred during validation:\n\n{str(error)}"
+                icon = QMessageBox.Icon.Critical
+                self.stats_label.setText("Validation failed")
+
+            QMessageBox.critical(self, title, message, icon)
             return
 
         self.scanner = scanner
