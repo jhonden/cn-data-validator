@@ -447,8 +447,7 @@ class ValidatorApp(QMainWindow):
                         # 检查是否完全不支持的包                        all_unsupported = nic_validation.get("all_unsupported", False)                        if all_unsupported:                            # 完全不支持的包：显示为 Invalid 状态                            status = "Invalid"                            status_color = "#F44336"  # Red                            detail = "Invalid NIC package: No supported network elements found, no need to collect"                        else:                            # 部分不支持的包：显示为 Warning 状态                            status = "Warning"                            status_color = "#FF9800"  # Orange                        status = 'Warning'
                         status_color = '#FF9800'  # Orange
 
-                        # 收集所有问题
-                        issues = []
+                                                                                                                                                # 对于完全不支持的包，跳过收集 issues                                                                                                                                                if all_unsupported:                                                                                                                                                    continue                                                                                                                                                                        issues = []
 
                         # 不支持的网元类型
                         unsupported_types = nic_validation.get('unsupported_types', [])
