@@ -1066,43 +1066,6 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 
 ---
 
-#### 9.3.10 ICG9816
-
-| 项目 | 配置（待核对） |
-|------|------|
-| **neinfo.txt 标识** | `ICG9816_NE=xxx` |
-| **配置文件键名** | `ICG9816`（与 neinfo.txt 一致） |
-| **匹配模式** | any（任意一个满足即可） |
-| **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
-| **必需校验** | true |
-
-**校验逻辑**：
-1. 从 neinfo.txt 解析出网元类型（如 `ICG9816_NE=xxx`）
-2. 查找配置中的 `ICG9816` 规则
-3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
-
----
-
-#### 9.3.11 UNC
-
-| 项目 | 配置（待核对） |
-|------|------|
-| **neinfo.txt 标识** | `UNC_NE=xxx` |
-| **配置文件键名** | `UNC`（与 neinfo.txt 一致） |
-| **匹配模式** | any（任意一个满足即可） |
-| **路径** | dataconfiguration |
-| **文件模式** | `*.tar.gz` |
-| **必需校验** | true |
-
-**校验逻辑**：
-1. 从 neinfo.txt 解析出网元类型（如 `UNC_NE=xxx`）
-2. 查找配置中的 `UNC` 规则
-3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
-4. 判断条件：该目录下只要存在任意一个 `.tar.gz` 文件即通过
-
----
 
 ### 9.4 不需要校验的网元类型
 
