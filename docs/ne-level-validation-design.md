@@ -1603,11 +1603,6 @@ CCF_NE=xxx_IP_xxx_xxx_PPR_CCFxx/
 | 阶段5 | UI 详情面板实现 | 3h | 待完成 |
 | 阶段6 | 测试和调试 | 2h | 待完成 |
 
-### 12.2 待补充信息
-
-- [ ] 待核对网元类型的校验规则：UDG, CCF, HSS9860, UDM, UPCC, UPCF, ENS, USCDB, ICG9815, ICG9816, UNC
-- [ ] 其他特殊网元类型的自定义校验器（如需要）
-
 ---
 
 **文档维护者**: Claude AI Assistant
