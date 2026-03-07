@@ -123,7 +123,7 @@ class ValidatorApp(QMainWindow):
         control_layout.addWidget(self.dir_label)
 
         self.dir_path_label = QLabel("")
-        self.dir_path_label.setStyleSheet("color: #666; font-style: italic;")
+        self.dir_path_label.setStyleSheet("color: #2196F3; font-weight: bold; background-color: #E3F2FD; padding: 6px 12px; border-radius: 4px;")
         self.dir_path_label.setMinimumWidth(400)
         control_layout.addWidget(self.dir_path_label)
 
@@ -318,7 +318,7 @@ class ValidatorApp(QMainWindow):
 
         if directory:
             self.current_dir = directory
-            self.dir_path_label.setText(f"Selected: {os.path.basename(directory)}")
+            self.dir_path_label.setText(f"📁 {directory}")
             self.validate_btn.setEnabled(True)
             self.statusBar.showMessage(f"Selected directory: {directory}")
 
