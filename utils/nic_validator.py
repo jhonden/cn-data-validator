@@ -97,6 +97,8 @@ class NICValidator:
             - missing_files: 缺失的关键文件 {folder_name: [missing_file_types]}
             - collect_range_too_short: 采集时间范围是否过短
             - collect_range_hours: 采集时间范围（小时）
+            - anonymous_mode_invalid: 是否为匿名化采集
+            - anonymous_mode: 匿名化模式值（true/false）
             - warnings: 警告信息列表
             - errors: 错误信息列表
         """
@@ -108,6 +110,8 @@ class NICValidator:
             'missing_files': {},
             'collect_range_too_short': False,
             'collect_range_hours': None,
+            'anonymous_mode_invalid': False,
+            'anonymous_mode': None,
             'warnings': [],
             'errors': []
         }
@@ -128,8 +132,9 @@ class NICValidator:
             result['neinfo_exists'] = True
             self._parse_neinfo_file(result)
 
-            # 3. 检查采集时间范围
+            # 3. 检查采集时间范围和匿名化模式
             self._check_collect_range(result)
+            self._check_anonymous_mode(result)
 
             # 4. 检查网元数据文件夹是否存在
             self._check_ne_folders(result)
@@ -294,8 +299,8 @@ class NICValidator:
             # 解压 report.tar.gz
             self._extract_report_package(report_file_path)
 
-            # 查找并解析 TaskExtValue.xml
-            collect_range = self._parse_collect_range()
+            # 查找并解析 TaskExtValue.xml（同时解析采集时间范围和匿名化模式）
+            collect_range = self._parse_collect_range(result)
             if not collect_range:
                 result['warnings'].append("Failed to parse collection time range from TaskExtValue.xml")
                 return
@@ -331,9 +336,9 @@ class NICValidator:
         with tarfile.open(report_file_path, 'r:gz') as tar:
             tar.extractall(self.temp_dir)
 
-    def _parse_collect_range(self) -> Optional[tuple]:
+    def _parse_collect_range(self, result: Dict) -> Optional[tuple]:
         """
-        解析 TaskExtValue.xml 中的 CollectRange 标签
+        解析 TaskExtValue.xml 中的 CollectRange 标签和 AnonymousAuthMode 标签
 
         Returns:
             (start_time, end_time) 或 None
@@ -355,6 +360,12 @@ class NICValidator:
             if collect_range is None or collect_range.text is None:
                 return None
 
+            # 查找 AnonymousAuthMode 标签
+            anonymous_mode = root.find('.//AnonymousAuthMode')
+            if anonymous_mode is not None and anonymous_mode.text is not None:
+                anonymous_mode_value = anonymous_mode.text.strip().lower()
+                result['anonymous_mode'] = anonymous_mode_value == 'true'
+
             # 解析格式：开始时间|结束时间
             time_range = collect_range.text.strip()
             if '|' not in time_range:
@@ -371,6 +382,26 @@ class NICValidator:
         except Exception as e:
             # XML 解析失败
             return None
+
+    def _check_anonymous_mode(self, result: Dict):
+        """检查是否为匿名化采集"""
+        try:
+            # 如果 anonymous_mode 未解析出来，说明 report 文件不存在或 XML 解析失败
+            # 这种情况下跳过此校验
+            if result.get('anonymous_mode') is None:
+                return
+
+            # 检查是否为匿名化模式（true）
+            if result['anonymous_mode']:
+                result['valid'] = False
+                result['anonymous_mode_invalid'] = True
+                result['errors'].append(
+                    "The NIC package was collected in anonymous mode, cannot meet network assessment "
+                    "requirements. Please re-collect in non-anonymous mode."
+                )
+
+        except Exception as e:
+            result['warnings'].append(f"Error checking anonymous mode: {str(e)}")
 
     def get_summary(self) -> str:
         """获取校验结果摘要"""

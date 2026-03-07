@@ -448,6 +448,8 @@ class ValidatorApp(QMainWindow):
                     all_unsupported = nic_validation.get('all_unsupported', False)
                     # 检查采集时间范围是否过短
                     collect_range_too_short = nic_validation.get('collect_range_too_short', False)
+                    # 检查是否为匿名化采集
+                    anonymous_mode_invalid = nic_validation.get('anonymous_mode_invalid', False)
 
                     if not nic_validation.get('valid', True):
                         # NIC 校验失败
@@ -456,6 +458,11 @@ class ValidatorApp(QMainWindow):
                             status = 'Invalid'
                             status_color = '#F44336'  # Red
                             detail = 'Invalid NIC package format: Missing required file neinfo.txt'
+                        elif anonymous_mode_invalid:
+                            # 匿名化采集 - 标记为 Invalid（红色）
+                            status = 'Invalid'
+                            status_color = '#F44336'  # Red
+                            detail = 'The NIC package was collected in anonymous mode, cannot meet network assessment requirements. Please re-collect in non-anonymous mode.'
                         elif collect_range_too_short:
                             # 采集时间范围过短 - 标记为 Invalid（红色）
                             status = 'Invalid'
