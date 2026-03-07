@@ -442,41 +442,45 @@ class ValidatorApp(QMainWindow):
                 # 处理 NIC 校验结果
                 nic_validation = file_info.get('nic_validation')
                 if nic_validation:
+                    # 检查是否所有网元类型都不支持
+                    all_unsupported = nic_validation.get('all_unsupported', False)
+
                     if not nic_validation.get('valid', True):
                         # NIC 校验失败
-                        status = 'Warning'
-                        status_color = '#FF9800'  # Orange
+                        if all_unsupported:
+                            # 所有网元类型都不支持 - 标记为 Invalid（红色）
+                            status = 'Invalid'
+                            status_color = '#F44336'  # Red
+                            detail = '该NIC包中没有任何一个CNAE支持的网元，无需采集该NIC包'
+                        else:
+                            # 其他错误 - 标记为 Warning（橙色）
+                            status = 'Warning'
+                            status_color = '#FF9800'  # Orange
 
-                        # 收集所有问题
-                        issues = []
+                            # 收集所有问题
+                            issues = []
 
-                        # 不支持的网元类型
-                        unsupported_types = nic_validation.get('unsupported_types', [])
-                        if unsupported_types:
-                            types_str = ', '.join([ne['ne_type'] for ne in unsupported_types])
-                            issues.append(f"Unsupported NE types: {types_str}")
+                            # 缺失的网元数据文件夹
+                            missing_folders = nic_validation.get('missing_folders', [])
+                            if missing_folders:
+                                issues.append(f"Missing {len(missing_folders)} NE data folders")
 
-                        # 缺失的网元数据文件夹
-                        missing_folders = nic_validation.get('missing_folders', [])
-                        if missing_folders:
-                            issues.append(f"Missing {len(missing_folders)} NE data folders")
+                            # 缺失的关键文件
+                            missing_files = nic_validation.get('missing_files', {})
+                            if missing_files:
+                                total_missing = sum(len(files['files']) for files in missing_files.values())
+                                issues.append(f"Missing {total_missing} key files")
 
-                        # 缺失的关键文件
-                        missing_files = nic_validation.get('missing_files', {})
-                        if missing_files:
-                            total_missing = sum(len(files['files']) for files in missing_files.values())
-                            issues.append(f"Missing {total_missing} key files")
+                            # 错误信息
+                            errors = nic_validation.get('errors', [])
+                            if errors:
+                                issues.append(f"Errors: {'; '.join(errors[:2])}")
 
-                        # 错误信息
-                        errors = nic_validation.get('errors', [])
-                        if errors:
-                            issues.append(f"Errors: {'; '.join(errors[:2])}")
-
-                        # 追加问题到 detail
-                        if issues:
-                            if detail:
-                                detail += ' | '
-                            detail += '; '.join(issues)
+                            # 追加问题到 detail
+                            if issues:
+                                if detail:
+                                    detail += ' | '
+                                detail += '; '.join(issues)
 
             elif package_type == 'Unknown':
                 note = package_details.get('note', '')
