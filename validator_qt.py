@@ -451,6 +451,24 @@ class ValidatorApp(QMainWindow):
                     # 检查是否为匿名化采集
                     anonymous_mode_invalid = nic_validation.get('anonymous_mode_invalid', False)
 
+                    # 处理静态 MML 校验结果
+                    static_mml_validation = nic_validation.get('static_mml_validation')
+                    if static_mml_validation:
+                        total_ne = static_mml_validation.get('total_ne_count', 0)
+                        valid_ne = static_mml_validation.get('valid_ne_count', 0)
+                        invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
+
+                        # 如果有无效的 NE，添加到 detail
+                        if invalid_ne > 0:
+                            if detail:
+                                detail += ' | '
+                            detail += f'NE Static MML: {valid_ne}/{total_ne} valid, {invalid_ne} invalid'
+                        else:
+                            # 全部 NE 的静态 MML 都有效
+                            if detail:
+                                detail += ' | '
+                            detail += f'NE Static MML: {valid_ne}/{total_ne} valid'
+
                     if not nic_validation.get('valid', True):
                         # NIC 校验失败
                         if missing_neinfo:

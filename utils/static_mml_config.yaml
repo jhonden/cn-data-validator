@@ -1,0 +1,184 @@
+# Static MML Validation Configuration
+# 网元级别静态 MML 校验规则配置
+
+static_mml_rules:
+  # Special NE types with custom validators
+  # 特殊网元类型（使用自定义校验器）
+
+  vUGW:
+    match_mode: custom
+    custom_validator: vUGW_validator
+    required: true
+    description: "Static MML Configuration (vUGW - supports CGW/DGW/UGW deployment modes)"
+
+  vCG:
+    match_mode: custom
+    custom_validator: vCG_validator
+    required: true
+    description: "Static MML Configuration (vCG)"
+
+  vUSN:
+    match_mode: custom
+    custom_validator: vUSN_validator
+    required: true
+    description: "Static MML Configuration (vUSN)"
+
+  USCDB:
+    match_mode: custom
+    custom_validator: USCDB_validator
+    required: true
+    description: "Static MML Configuration (USCDB - two validation sets)"
+
+  # Regular NE types with any/all match modes
+  # 普通网元类型（使用 any/all 匹配模式）
+
+  ATS:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+      - "*.zip"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  CSCF:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+      - "*.zip"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  SE2900:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+      - "*.txt"
+      - "*.tar.gz"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  CloudSE2980:
+    path: "dataconfiguration"
+    patterns:
+      - "*.txt"
+      - "*.tar.gz"
+      - "*.zip"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  SPSV3:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  USC:
+    path: "USC/conf"
+    patterns:
+      - "*.tar.gz"
+      - "*.zip"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  UNC:
+    path: "CSP/Configuration"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  UDG:
+    path: "CSP/Configuration"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  UPCC:
+    path: "UPCC"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  UPCF:
+    path: "UPCF/dataconfiguration/ALLMML"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  HSS9860:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  UDM:
+    path: "UDM/MML/MMLConfig"
+    patterns:
+      - "*_MDM_*.zip"
+      - "*_UDM_*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  ENS:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  CCF:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+      - "*.tar.gz"
+      - "ALLME_*.txt"
+    match_mode: any
+    required: true
+    description: "Static MML Configuration"
+
+  # Non-required NE types
+  # 不需要校验的网元类型
+
+  CSP:
+    required: false
+    description: "Static MML not required for CSP"
+
+  CGPOMU:
+    required: false
+    description: "Static MML not required for CGPOMU"

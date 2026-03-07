@@ -5,6 +5,7 @@
 - 网元数据文件夹检查
 - 关键文件缺失校验
 - 采集时间范围校验
+- 网元级别静态 MML 校验
 """
 
 import os
@@ -14,6 +15,9 @@ import tempfile
 from typing import Dict, List, Optional, Set
 from datetime import datetime
 import xml.etree.ElementTree as ET
+
+# Import static MML checker
+from .static_mml_checker import StaticMMLChecker
 
 
 class NEInstance:
@@ -83,6 +87,9 @@ class NICValidator:
         self.ne_instances: List[NEInstance] = []
         self.neinfo_path = None
         self.temp_dir = None
+        # Initialize static MML checker
+        config_path = os.path.join(os.path.dirname(__file__), 'static_mml_config.yaml')
+        self.static_mml_checker = StaticMMLChecker(config_path)
 
     def validate(self) -> Dict:
         """
@@ -113,7 +120,8 @@ class NICValidator:
             'anonymous_mode_invalid': False,
             'anonymous_mode': None,
             'warnings': [],
-            'errors': []
+            'errors': [],
+            'static_mml_validation': None  # Add static MML validation result
         }
 
         try:
@@ -142,7 +150,10 @@ class NICValidator:
             # 5. 检查关键文件
             self._check_required_files(result)
 
-            # 6. 判断整体校验结果
+            # 6. 检查网元级别静态 MML
+            self._check_static_mml(result)
+
+            # 7. 判断整体校验结果
             # 只有当所有网元类型都不支持时，才标记为无效
             # 如果有任何一个网元类型支持，即使有其他不支持的，也算部分有效
             all_unsupported = len(self.ne_instances) > 0 and len(result['unsupported_types']) == len(self.ne_instances)
@@ -285,6 +296,23 @@ class NICValidator:
                     'ne_type': ne_instance.ne_type,
                     'files': missing_files
                 }
+
+    def _check_static_mml(self, result: Dict):
+        """Check NE-level static MML configuration"""
+        try:
+            # Get NE folder path (directory containing neinfo.txt)
+            ne_folder_path = os.path.dirname(self.neinfo_path)
+
+            # Call static MML checker to validate all NEs
+            static_mml_result = self.static_mml_checker.check_package(
+                ne_folder_path,
+                self.ne_instances
+            )
+
+            result['static_mml_validation'] = static_mml_result
+
+        except Exception as e:
+            result['warnings'].append(f"Error checking static MML: {str(e)}")
 
     def _check_collect_range(self, result: Dict):
         """检查采集时间范围是否大于 24 小时"""
