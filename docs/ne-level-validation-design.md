@@ -242,6 +242,73 @@ static_mml_rules:
 
 ---
 
+## 5.5 特殊网元类型规则
+
+### vUGW 网元详细规则
+
+**三种部署形态**：
+
+| 部署形态 | 子目录 | 路径 | 说明 |
+|----------|--------|------|------|
+| CloudCGW | cgw/ | {网元数据文件夹}/cgw/mml/*.txt | CGW 形态 |
+| CloudDGW | dgw/ | {网元数据文件夹}/dgw/mml/*.txt | DGW 形态 |
+| CloudUGW | ugw/ | {网元数据文件夹}/ugw/mml/*.txt | UGW 形态 |
+
+**CGW 形态详细配置**：
+```
+路径: {网元数据文件夹}/cgw/mml
+patterns:
+  - omo/mml/*.txt
+  - cgw/mml/mmlconf_cgw_*.txt
+  - vnrs/mml/*.txt
+required: all（三个路径都必须有文件）
+```
+
+**DGW 形态详细配置**：
+```
+路径: {网元数据文件夹}/dgw/mml
+patterns:
+  - omo/mml/*.txt
+  - dgw/mml/mmlconf_dgw_*.txt
+  - vnrs/mml/*.txt
+required: all（三个路径都必须有文件）
+```
+
+**UGW 形态详细配置**：
+```
+路径: {网元数据文件夹}/ugw/mml
+patterns:
+  - omo/mml/*.txt
+  - ugw/mml/mmlconf_ugw_*.txt
+  - vnrs/mml/*.txt
+required: all（三个路径都必须有文件）
+```
+
+---
+
+### CloudUSN 网元详细规则
+
+**配置**：
+```
+路径: omo/mml, vnrs/mml
+patterns: ["*.txt"]
+match_mode: any（两种目录中任意一种有文件即可）
+required: true
+```
+
+---
+
+### CloudCG 网元详细规则
+
+**配置**：
+```
+路径: cgw/mml
+patterns: ["*.txt"]
+required: true（cgw/mml 目录下所有 .txt 文件都必须存在）
+```
+
+---
+
 ## 6. 文件路径构建规则
 
 ### 6.1 路径构建格式
@@ -654,6 +721,29 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 ## 10. 已知网元类型配置
 
 ### 10.1 已实现的网元类型
+
+| 网元类型 | Match Mode | Path | Patterns | Required |
+|----------|------------|------|----------|---------|
+| ATS | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | true |
+| CSCF | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | true |
+| UDG | any | configuration/static | static_mml.txt | true |
+| vUGW | custom | - | - | true（三种形态） |
+| vCG | any | - | - | 待补充 |
+| vUSN | any | - | - | 待补充 |
+| CloudSE2980 | any | dataconfiguration | *.txt | 待补充 |
+| SE2900 | any | dataconfiguration | *.zip | 待补充 |
+| CCF | any | dataconfiguration | *.tar.gz | 待补充 |
+| SPSV3 | any | dataconfiguration | *.zip | 待补充 |
+| USC | any | dataconfiguration | *.tar.gz | 待补充 |
+| HSS9860 | any | dataconfiguration | *.tar.gz | 待补充 |
+| UDM | any | dataconfiguration | *.tar.gz | 待补充 |
+| UPCC | any | dataconfiguration | *.tar.gz | 待补充 |
+| UPCF | any | dataconfiguration | *.tar.gz | 待补充 |
+| ENS | any | dataconfiguration | *.tar.gz | 待补充 |
+| USCDB | any | dataconfiguration | *.tar.gz | 待补充 |
+| ICG9815 | any | - | - | 待补充 |
+| ICG9816 | any | - | - | 待补充 |
+| USCDB (备用) | any | uscdb/dataconfiguration/ALLMML*.txt | false | 待补充 |
 
 | 网元类型 | Match Mode | Path | Patterns | 状态 |
 |----------|------------|------|----------|------|
