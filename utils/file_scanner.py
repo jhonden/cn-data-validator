@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from .package_identifier import PackageIdentifier
+from .nic_validator import NICValidator
 
 class FileScanner:
     """文件扫描器"""
@@ -37,7 +38,7 @@ class FileScanner:
                     # 识别包类型
                     package_type, details = self.identifier.identify(file_path, file)
 
-                    self.valid_files.append({
+                    file_info = {
                         'path': file_path,
                         'relative_path': relative_path,
                         'name': file,
@@ -45,7 +46,14 @@ class FileScanner:
                         'modified': datetime.fromtimestamp(os.path.getmtime(file_path)),
                         'package_type': package_type,  # 包类型
                         'package_details': details  # 包详情
-                    })
+                    }
+
+                    # 如果是 NIC 包，执行深度校验
+                    if package_type == 'NIC Package':
+                        nic_validation = self._validate_nic_package(file_path)
+                        file_info['nic_validation'] = nic_validation
+
+                    self.valid_files.append(file_info)
                 else:
                     self.illegal_files.append({
                         'path': file_path,
@@ -85,3 +93,27 @@ class FileScanner:
             'valid_files': len(self.valid_files),
             'illegal_files': len(self.illegal_files)
         }
+
+    def _validate_nic_package(self, nic_path: str):
+        """校验 NIC 包中的网元数据
+
+        Args:
+            nic_path: NIC 包文件路径
+
+        Returns:
+            NIC 校验结果字典
+        """
+        try:
+            validator = NICValidator(nic_path)
+            return validator.validate()
+        except Exception as e:
+            return {
+                'valid': False,
+                'error': f"NIC validation failed: {str(e)}",
+                'neinfo_exists': False,
+                'unsupported_types': [],
+                'missing_folders': [],
+                'missing_files': {},
+                'warnings': [],
+                'errors': [str(e)]
+            }

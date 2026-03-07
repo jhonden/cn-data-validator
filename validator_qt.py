@@ -425,10 +425,53 @@ class ValidatorApp(QMainWindow):
 
             # Generate detail information
             detail = ''
+            status = 'Valid'
+            status_color = '#4CAF50'
+
             if package_type == 'NIC Package':
                 time = package_details.get('time', '')
                 if time:
                     detail = f'Time: {time}'
+
+                # 处理 NIC 校验结果
+                nic_validation = file_info.get('nic_validation')
+                if nic_validation:
+                    if not nic_validation.get('valid', True):
+                        # NIC 校验失败
+                        status = 'Warning'
+                        status_color = '#FF9800'  # Orange
+
+                        # 收集所有问题
+                        issues = []
+
+                        # 不支持的网元类型
+                        unsupported_types = nic_validation.get('unsupported_types', [])
+                        if unsupported_types:
+                            types_str = ', '.join([ne['ne_type'] for ne in unsupported_types])
+                            issues.append(f"Unsupported NE types: {types_str}")
+
+                        # 缺失的网元数据文件夹
+                        missing_folders = nic_validation.get('missing_folders', [])
+                        if missing_folders:
+                            issues.append(f"Missing {len(missing_folders)} NE data folders")
+
+                        # 缺失的关键文件
+                        missing_files = nic_validation.get('missing_files', {})
+                        if missing_files:
+                            total_missing = sum(len(files['files']) for files in missing_files.values())
+                            issues.append(f"Missing {total_missing} key files")
+
+                        # 错误信息
+                        errors = nic_validation.get('errors', [])
+                        if errors:
+                            issues.append(f"Errors: {'; '.join(errors[:2])}")
+
+                        # 追加问题到 detail
+                        if issues:
+                            if detail:
+                                detail += ' | '
+                            detail += '; '.join(issues)
+
             elif package_type == 'Unknown':
                 note = package_details.get('note', '')
                 if note:
@@ -441,9 +484,9 @@ class ValidatorApp(QMainWindow):
                 'size': self._format_size(file_info['size']),
                 'format': self._get_file_type(file_info['name']),
                 'package_type': package_type,
-                'status': 'Valid',
+                'status': status,
                 'detail': detail,
-                'status_color': '#4CAF50',
+                'status_color': status_color,
                 'package_color': package_color
             })
 
