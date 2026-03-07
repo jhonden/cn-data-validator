@@ -14,10 +14,21 @@ import shutil
 
 
 def create_test_nic_package(output_path='test_nic_package.tar.gz'):
-    """创建测试 NIC 包"""
+    """创建测试 NIC 包
 
+    Args:
+        output_path: 输出文件名（相对或绝对路径），默认在当前目录
+    """
+
+    # 获取脚本所在目录作为输出目录
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_full_path = os.path.join(script_dir, output_path)
+
+    # 临时目录用于构建包结构
     temp_dir = tempfile.mkdtemp(prefix='test_nic_creation_')
     print(f"Creating test NIC package in: {temp_dir}")
+    print(f"Will output to: {output_full_path}")
+    print()
 
     # 创建时间文件夹
     time_folder = "20250203105511"
@@ -140,11 +151,11 @@ Error_Count=62
     report_path = os.path.join(temp_dir, f'{time_folder}_report.tar.gz')
     with open(report_path, 'wb') as f:
         # 创建空的 report 文件
-        f.write(b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00')  # gzip header
+        f.write(b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\x00')  # gzip header
     print(f"✓ Created report file: {os.path.basename(report_path)}")
 
-    # 打包成 tar.gz
-    output_file = os.path.join(os.path.dirname(temp_dir), output_path)
+    # 打包成 tar.gz - 输出到脚本所在目录
+    output_file = output_full_path
     with tarfile.open(output_file, 'w:gz') as tar:
         tar.add(time_dir, arcname=time_folder)
         tar.add(report_path, arcname=os.path.basename(report_path))
@@ -208,9 +219,9 @@ if __name__ == '__main__':
     print("\n" + "=" * 70)
     print("Next Steps:")
     print("=" * 70)
-    print(f"\n1. Run the validator: python3 validator_qt.py")
-    print(f"2. Select the directory containing: {output_file}")
+    print(f"\n1. Run validator: python3 validator_qt.py")
+    print(f"2. Select the directory containing: {os.path.basename(output_file)}")
     print(f"3. Click 'Start Validation'")
-    print(f"4. Check the validation results in the table")
-    print(f"5. Look for Warning status in the 'Details' column")
+    print(f"4. Check validation results in the table")
+    print(f"5. Look for 'Warning' status in the 'Details' column")
     print()
