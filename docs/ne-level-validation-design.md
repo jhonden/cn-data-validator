@@ -172,6 +172,220 @@ static_mml_rules:
   CSP:
     required: false
     description: "Static MML not required for CSP"
+  CGPOMU:
+    required: false
+    description: "Static MML not required for CGPOMU"
+
+---
+
+## 4. 配置文件示例（完整）
+
+```yaml
+# utils/static_mml_config.yaml
+
+# 静态 MML 校验规则配置
+static_mml_rules:
+  # 普通网元类型（使用 any 模式）
+  ATS:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+      - "*.zip"
+      - "ALLME_*.txt"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  CSCF:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+      - "*.zip"
+      - "ALLME_*.txt"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  UDG:
+    path: "configuration/static"
+    patterns:
+      - "static_mml.txt"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  # 示例2：特殊网元类型（custom 模式）
+  vUGW:
+    match_mode: "custom"
+    custom_validator: "vUGW_validator"
+    required: true
+    description: "Static MML Configuration (vUGW - 3 deployment modes)"
+    note: "Auto-detect CGW/DGW/UGW deployment from subdirectories"
+
+  # 示例3：不需要校验的网元类型
+  CSP:
+    required: false
+    description: "Static MML not required for CSP"
+  CGPOMU:
+    required: false
+    description: "Static MML not required for CGPOMU"
+
+  # 云化网元类型（使用 any/all 模式）
+  CloudCGW:
+    path: "omo/mml"
+    patterns:
+      - "*.txt"
+    match_mode: "all"
+    required: true
+    description: "Static MML Configuration (CGW deployment)"
+
+  CloudDGW:
+    path: "omo/mml"
+    patterns:
+      - "*.txt"
+    match_mode: "all"
+    required: true
+    description: "Static MML Configuration (DGW deployment)"
+
+  CloudUGW:
+    path: "omo/mml"
+    patterns:
+      - "*.txt"
+    match_mode: "all"
+    required: true
+    description: "Static MML Configuration (UGW deployment)"
+
+  CloudUSN:
+    path: ""
+    patterns:
+      - "omo/mml/*.txt"
+      - "vnrs/mml/*.txt"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  CloudSE2980:
+    path: "dataconfiguration"
+    patterns:
+      - "*.txt"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  SE2900:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  CCF:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  SPSV3:
+    path: "dataconfiguration"
+    patterns:
+      - "*.zip"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  USC:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  HSS9860:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  UDM:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  UPCC:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  UPCF:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  ENS:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  USCDB:
+    path: "uscdb/dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  ICG9815:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  ICG9816:
+    path: "dataconfiguration"
+    patterns:
+      - "*.tar.gz"
+    match_mode: "any"
+    required: true
+    description: "Static MML Configuration"
+
+  # 待补充的网元类型
+  vCG:
+    path: "cgw/mml"
+    patterns: ["*.txt"]
+    required: false
+    description: "Static MML not required for vCG"
+    note: "Configuration pending"
+
+  vUSN:
+    path: ""
+    patterns: []
+    required: false
+    description: "Static MML not required for vUSN"
+    note: "Configuration pending"
+```
+  CSP:
+    required: false
+    description: "Static MML not required for CSP"
 
   CGPOMU:
     required: false
@@ -298,7 +512,211 @@ required: true
 
 ---
 
-### CloudCG 网元详细规则
+### vCG 网元详细规则
+
+**配置**：
+```
+路径: cgw/mml
+patterns: ["*.txt"]
+required: true（cgw/mml 目录下所有 .txt 文件都必须存在）
+```
+
+**注意**：配置待用户提供
+
+---
+
+### vUSN 网元详细规则
+
+**配置**：
+```
+路径: - | - | - |
+patterns: - | - |
+required: - | - |
+```
+
+**注意**：配置待用户提供
+
+---
+
+### CloudSE2980 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.txt"]
+match_mode: any
+required: true
+```
+
+---
+
+### SE2900 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.zip"]
+match_mode: any
+required: true
+```
+
+---
+
+### CCF 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### SPSV3 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.zip"]
+match_mode: any
+required: true
+```
+
+---
+
+### USC 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### HSS9860 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### UDM 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### UPCC 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### UPCF 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### ENS 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### USCDB 网元详细规则
+
+**配置**：
+```
+路径: uscdb/dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### ICG9815 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### ICG9816 网元详细规则
+
+**配置**：
+```
+路径: dataconfiguration
+patterns: ["*.tar.gz"]
+match_mode: any
+required: true
+```
+
+---
+
+### vCG 网元详细规则
+
+**配置**：
+```
+路径: - | - | - |
+patterns: - | - |
+required: - | - |
+```
+
+**注意**：配置待用户提供
+
+---
+
+### vUSN 网元详细规则
+
+**配置**：
+```
+路径: - | - | - |
+patterns: - | - |
+required: - | - |
+```
+
+**注意**：配置待用户提供
 
 **配置**：
 ```
@@ -728,22 +1146,27 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 | CSCF | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | true |
 | UDG | any | configuration/static | static_mml.txt | true |
 | vUGW | custom | - | - | true（三种形态） |
-| vCG | any | - | - | 待补充 |
-| vUSN | any | - | - | 待补充 |
-| CloudSE2980 | any | dataconfiguration | *.txt | 待补充 |
-| SE2900 | any | dataconfiguration | *.zip | 待补充 |
-| CCF | any | dataconfiguration | *.tar.gz | 待补充 |
-| SPSV3 | any | dataconfiguration | *.zip | 待补充 |
-| USC | any | dataconfiguration | *.tar.gz | 待补充 |
-| HSS9860 | any | dataconfiguration | *.tar.gz | 待补充 |
-| UDM | any | dataconfiguration | *.tar.gz | 待补充 |
-| UPCC | any | dataconfiguration | *.tar.gz | 待补充 |
-| UPCF | any | dataconfiguration | *.tar.gz | 待补充 |
-| ENS | any | dataconfiguration | *.tar.gz | 待补充 |
-| USCDB | any | dataconfiguration | *.tar.gz | 待补充 |
-| ICG9815 | any | - | - | 待补充 |
-| ICG9816 | any | - | - | 待补充 |
-| USCDB (备用) | any | uscdb/dataconfiguration/ALLMML*.txt | false | 待补充 |
+| vCG | any | dataconfiguration | *.tar.gz | true |
+| vUSN | any | dataconfiguration | *.tar.gz | true |
+| CloudSE2980 | any | dataconfiguration | *.txt | true |
+| SE2900 | any | dataconfiguration | *.zip | true |
+| CCF | any | dataconfiguration | *.tar.gz | true |
+| SPSV3 | any | dataconfiguration | *.zip | true |
+| USC | any | dataconfiguration | *.tar.gz | true |
+| HSS9860 | any | dataconfiguration | *.tar.gz | true |
+| UDM | any | dataconfiguration | *.tar.gz | true |
+| UPCC | any | dataconfiguration | *.tar.gz | true |
+| UPCF | any | dataconfiguration | *.tar.gz | true |
+| ENS | any | dataconfiguration | *.tar.gz | true |
+| USCDB | any | dataconfiguration | *.tar.gz | true |
+| ICG9815 | any | dataconfiguration | *.tar.gz | true |
+| ICG9816 | any | dataconfiguration | *.tar.gz | true |
+| UNC | any | dataconfiguration | *.tar.gz | true |
+| CloudCGW | custom | - | - | true（三种形态） |
+| CloudDGW | custom | - | - | true（三种形态） |
+| CloudUGW | custom | - | - | true（三种形态） |
+| CloudUSN | any | dataconfiguration | *.tar.gz | true |
+| CloudCG | any | dataconfiguration | *.tar.gz | true |
 
 | 网元类型 | Match Mode | Path | Patterns | 状态 |
 |----------|------------|------|----------|------|
@@ -759,35 +1182,48 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 | CSP | false | 不需要校验静态 MML |
 | CGPOMU | false | 不需要校验静态 MML |
 
+### 10.3 特殊网元类型规则
+
+#### 10.3.1 CloudCGW / CloudDGW / CloudUGW（三种部署形态）
+
+这三个网元类型与 vUGW 类似，支持三种部署形态，使用 `custom` 匹配模式：
+
+**CloudCGW 部署形态：**
+
+| 形态 | 检查路径 | 匹配模式 |
+|------|---------|---------|
+| cgw | omo/mml/*.txt, cgw/mml/mmlconf_cgw_*.txt, vnrs/mml/*.txt | all |
+| dgw | omo/mml/*.txt, dgw/mml/mmlconf_dgw_*.txt, vnrs/mml/*.txt | all |
+| ugw | omo/mml/*.txt, ugw/mml/mmlconf_ugw_*.txt, vnrs/mml/*.txt | all |
+
+**CloudDGW 部署形态：**
+
+| 形态 | 检查路径 | 匹配模式 |
+|------|---------|---------|
+| cgw | omo/mml/*.txt, cgw/mml/mmlconf_cgw_*.txt, vnrs/mml/*.txt | all |
+| dgw | omo/mml/*.txt, dgw/mml/mmlconf_dgw_*.txt, vnrs/mml/*.txt | all |
+| ugw | omo/mml/*.txt, ugw/mml/mmlconf_ugw_*.txt, vnrs/mml/*.txt | all |
+
+**CloudUGW 部署形态：**
+
+| 形态 | 检查路径 | 匹配模式 |
+|------|---------|---------|
+| cgw | omo/mml/*.txt, cgw/mml/mmlconf_cgw_*.txt, vnrs/mml/*.txt | all |
+| dgw | omo/mml/*.txt, dgw/mml/mmlconf_dgw_*.txt, vnrs/mml/*.txt | all |
+| ugw | omo/mml/*.txt, ugw/mml/mmlconf_ugw_*.txt, vnrs/mml/*.txt | all |
+
+**校验规则：**
+- 三种部署形态（cgw/dgw/ugw）满足其中任何一种即可
+- 每种形态需要同时存在对应的 3 个路径下的文件
+- 使用自定义校验器实现：`utils/custom_validators/CloudCGW_validator.py`、`CloudDGW_validator.py`、`CloudUGW_validator.py`
+
 ---
 
 ## 11. 待补充的网元类型配置
 
-### 11.1 需要用户提供
+所有网元类型的静态 MML 配置规则已确认完成。详见第 10 节。
 
-请补充以下网元类型的静态 MML 配置规则：
-
-| 网元类型 | Match Mode | Path | Patterns | 说明 |
-|----------|------------|------|----------|------|
-| UNC | | | | 待补充 |
-| UDG | any | configuration/static | static_mml.txt | 已确认 |
-| vCG | | | | 待补充 |
-| vUSN | | | | 待补充 |
-| ATS | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | 已确认 |
-| CSCF | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | 已确认 |
-| CloudSE2980 | | | | 待补充 |
-| SE2900 | | | | 待补充 |
-| CCF | | | | 待补充 |
-| SPSV3 | | | | 待补充 |
-| USC | | | | 待补充 |
-| HSS9860 | | | | 待补充 |
-| UDM | | | | 待补充 |
-| UPCC | | | | 待补充 |
-| UPCF | | | | 待补充 |
-| ENS | | | | 待补充 |
-| USCDB | | | 待补充 |
-
-### 11.2 配置填写示例
+### 11.1 配置填写示例
 
 **格式说明**：
 - `Path`：相对路径，相对于网元数据文件夹根目录
