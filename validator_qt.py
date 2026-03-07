@@ -442,12 +442,19 @@ class ValidatorApp(QMainWindow):
                 # 处理 NIC 校验结果
                 nic_validation = file_info.get('nic_validation')
                 if nic_validation:
+                    # 检查是否缺失 neinfo.txt
+                    missing_neinfo = nic_validation.get('missing_neinfo', False)
                     # 检查是否所有网元类型都不支持
                     all_unsupported = nic_validation.get('all_unsupported', False)
 
                     if not nic_validation.get('valid', True):
                         # NIC 校验失败
-                        if all_unsupported:
+                        if missing_neinfo:
+                            # 缺失 neinfo.txt - 标记为 Invalid（红色）
+                            status = 'Invalid'
+                            status_color = '#F44336'  # Red
+                            detail = 'Invalid NIC package format: Missing required file neinfo.txt'
+                        elif all_unsupported:
                             # 所有网元类型都不支持 - 标记为 Invalid（红色）
                             status = 'Invalid'
                             status_color = '#F44336'  # Red

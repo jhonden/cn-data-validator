@@ -112,7 +112,8 @@ class NICValidator:
             self.neinfo_path = self._find_neinfo_file()
             if not self.neinfo_path:
                 result['valid'] = False
-                result['errors'].append("neinfo.txt not found in NIC package")
+                result['errors'].append("Invalid NIC package format: Missing required file neinfo.txt")
+                result['missing_neinfo'] = True
                 return result
 
             result['neinfo_exists'] = True
