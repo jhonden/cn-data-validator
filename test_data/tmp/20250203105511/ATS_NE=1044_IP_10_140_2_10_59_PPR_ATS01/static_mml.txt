@@ -1,8 +1,0 @@
-# Static MML Configuration for PPR_ATS01
-# Network Element: ATS
-# Instance ID: NE=1094
-
-SET NE_NAME=PPR_ATS01
-SET NE_TYPE=ATS
-SET NE_GROUP=56
-SET NE_IP=10.140.2.1

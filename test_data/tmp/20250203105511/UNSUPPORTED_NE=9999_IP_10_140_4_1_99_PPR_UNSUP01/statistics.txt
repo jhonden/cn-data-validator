@@ -1,6 +1,0 @@
-# Statistics Data for PPR_UNSUP01
-# Collection Time: 2025-02-03 10:55:11
-
-Total_Calls=12345
-Success_Rate=99.5%
-Error_Count=62

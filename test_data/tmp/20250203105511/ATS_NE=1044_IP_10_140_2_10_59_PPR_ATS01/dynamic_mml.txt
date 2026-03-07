@@ -1,6 +1,0 @@
-# Dynamic MML Configuration for PPR_ATS01
-# Runtime configuration
-# Generated at: 2025-02-03 10:55:11
-
-MODIFY NE_STATE=ACTIVE
-ADD ROUTE_TABLE=default

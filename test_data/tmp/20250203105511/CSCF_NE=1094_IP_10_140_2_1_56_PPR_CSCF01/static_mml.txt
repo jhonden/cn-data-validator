@@ -1,8 +1,0 @@
-# Static MML Configuration for PPR_CSCF01
-# Network Element: CSCF
-# Instance ID: NE=1094
-
-SET NE_NAME=PPR_CSCF01
-SET NE_TYPE=CSCF
-SET NE_GROUP=56
-SET NE_IP=10.140.2.1
