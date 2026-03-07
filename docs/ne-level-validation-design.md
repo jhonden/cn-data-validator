@@ -1145,14 +1145,14 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 | ATS | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | true |
 | CSCF | any | dataconfiguration | *.tar.gz, *.zip, ALLME_*.txt | true |
 | UDG | any | configuration/static | static_mml.txt | true |
-| vUGW | custom | - | - | true（三种形态） |
-| vCG | any | dataconfiguration | *.tar.gz | true |
-| vUSN | any | dataconfiguration | *.tar.gz | true |
-| CloudSE2980 | any | dataconfiguration | *.txt | true |
-| SE2900 | any | dataconfiguration | *.zip | true |
+| vUGW | custom | 见10.3.1 | *.txt | true（三种形态） |
+| vCG | custom | 见10.3.2 | *.txt | true（三个路径） |
+| vUSN | custom | 见10.3.3 | *.txt | true（四个路径） |
+| CloudSE2980 | any | dataconfiguration | *.txt, *.tar.gz, *.zip | true |
+| SE2900 | any | dataconfiguration | *.zip, *.txt, *.tar.gz | true |
 | CCF | any | dataconfiguration | *.tar.gz | true |
-| SPSV3 | any | dataconfiguration | *.zip | true |
-| USC | any | dataconfiguration | *.tar.gz | true |
+| SPSV3 | any | dataconfiguration | *.zip, *.tar.gz, ALLME_*.txt | true |
+| USC | any | USC/conf | *.tar.gz, *.zip, ALLME_*.txt | true |
 | HSS9860 | any | dataconfiguration | *.tar.gz | true |
 | UDM | any | dataconfiguration | *.tar.gz | true |
 | UPCC | any | dataconfiguration | *.tar.gz | true |
@@ -1162,11 +1162,6 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 | ICG9815 | any | dataconfiguration | *.tar.gz | true |
 | ICG9816 | any | dataconfiguration | *.tar.gz | true |
 | UNC | any | dataconfiguration | *.tar.gz | true |
-| CloudCGW | custom | - | - | true（三种形态） |
-| CloudDGW | custom | - | - | true（三种形态） |
-| CloudUGW | custom | - | - | true（三种形态） |
-| CloudUSN | any | dataconfiguration | *.tar.gz | true |
-| CloudCG | any | dataconfiguration | *.tar.gz | true |
 
 | 网元类型 | Match Mode | Path | Patterns | 状态 |
 |----------|------------|------|----------|------|
@@ -1184,38 +1179,251 @@ def validate_static_mml(ne_folder_path: str, ne_name: str, ne_type: str, config:
 
 ### 10.3 特殊网元类型规则
 
-#### 10.3.1 CloudCGW / CloudDGW / CloudUGW（三种部署形态）
+#### 10.3.1 vUGW（CNAE 内部拆分：CloudCGW / CloudDGW / CloudUGW）
 
-这三个网元类型与 vUGW 类似，支持三种部署形态，使用 `custom` 匹配模式：
+**vUGW** 支持三种部署形态，满足任意一种即通过。使用 `custom` 匹配模式。
 
-**CloudCGW 部署形态：**
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `vUGW_NE=xxx` |
+| **配置文件键名** | `vUGW`（与 neinfo.txt 一致） |
+| **CNAE 内部拆分** | CloudCGW, CloudDGW, CloudUGW（三种部署形态） |
+| **匹配模式** | custom（自定义校验器） |
+| **必需校验** | true |
 
-| 形态 | 检查路径 | 匹配模式 |
-|------|---------|---------|
-| cgw | omo/mml/*.txt, cgw/mml/mmlconf_cgw_*.txt, vnrs/mml/*.txt | all |
-| dgw | omo/mml/*.txt, dgw/mml/mmlconf_dgw_*.txt, vnrs/mml/*.txt | all |
-| ugw | omo/mml/*.txt, ugw/mml/mmlconf_ugw_*.txt, vnrs/mml/*.txt | all |
+**三种部署形态**（满足任意一种即通过，每种形态需要 4 个路径都存在文件）：
 
-**CloudDGW 部署形态：**
+**形态 CGW**：
+```
+- omo/mml/*.txt
+- vnrs/mml/*.txt
+- 0/mml/*.txt
+- cgw/mml/mmlconf_cgw_*.txt
+```
 
-| 形态 | 检查路径 | 匹配模式 |
-|------|---------|---------|
-| cgw | omo/mml/*.txt, cgw/mml/mmlconf_cgw_*.txt, vnrs/mml/*.txt | all |
-| dgw | omo/mml/*.txt, dgw/mml/mmlconf_dgw_*.txt, vnrs/mml/*.txt | all |
-| ugw | omo/mml/*.txt, ugw/mml/mmlconf_ugw_*.txt, vnrs/mml/*.txt | all |
+**形态 DGW**：
+```
+- omo/mml/*.txt
+- vnrs/mml/*.txt
+- 0/mml/*.txt
+- dgw/mml/mmlconf_dgw_*.txt
+```
 
-**CloudUGW 部署形态：**
+**形态 UGW**：
+```
+- omo/mml/*.txt
+- vnrs/mml/*.txt
+- 0/mml/*.txt
+- ugw/mml/mmlconf_ugw_*.txt
+```
 
-| 形态 | 检查路径 | 匹配模式 |
-|------|---------|---------|
-| cgw | omo/mml/*.txt, cgw/mml/mmlconf_cgw_*.txt, vnrs/mml/*.txt | all |
-| dgw | omo/mml/*.txt, dgw/mml/mmlconf_dgw_*.txt, vnrs/mml/*.txt | all |
-| ugw | omo/mml/*.txt, ugw/mml/mmlconf_ugw_*.txt, vnrs/mml/*.txt | all |
+**校验逻辑**：
+1. 从 neinfo.txt 解析：`vUGW_NE=xxx` → 提取类型 `vUGW`
+2. 使用自定义校验器 `vUGW_validator.py`
+3. 依次检查三种部署形态（CGW/DGW/UGW）：
+   - 每种形态需要同时存在四个路径下的 `*.txt` 文件
+   - 只要找到一种完整形态，校验即通过
+4. 如果三种形态都不满足，校验失败
 
-**校验规则：**
-- 三种部署形态（cgw/dgw/ugw）满足其中任何一种即可
-- 每种形态需要同时存在对应的 3 个路径下的文件
-- 使用自定义校验器实现：`utils/custom_validators/CloudCGW_validator.py`、`CloudDGW_validator.py`、`CloudUGW_validator.py`
+---
+
+#### 10.3.2 vCG（CNAE 内部叫法：CloudCG）
+
+**vCG** 需要三个路径都存在文件。使用 `custom` 或 `all` 匹配模式。
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `vCG_NE=xxx` |
+| **配置文件键名** | `vCG`（与 neinfo.txt 一致） |
+| **CNAE 内部叫法** | CloudCG |
+| **匹配模式** | custom 或 all（需要全部满足） |
+| **必需校验** | true |
+
+**检查路径**（三个路径都要存在文件）：
+
+```
+- cg/mml/*.txt
+- vnrs/mml/*.txt
+- 0/mml/*.txt
+```
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析：`vCG_NE=xxx` → 提取类型 `vCG`
+2. 查找配置中的 `vCG` 规则
+3. 检查三个路径，每个路径下都必须存在至少一个 `*.txt` 文件：
+   - `{网元文件夹}/cg/mml/*.txt`
+   - `{网元文件夹}/vnrs/mml/*.txt`
+   - `{网元文件夹}/0/mml/*.txt`
+4. 只有三个路径都满足，校验才通过
+
+---
+
+#### 10.3.3 vUSN（CNAE 内部叫法：CloudUSN）
+
+**vUSN** 需要四个路径都存在文件。使用 `custom` 或 `all` 匹配模式。
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `vUSN_NE=xxx` |
+| **配置文件键名** | `vUSN`（与 neinfo.txt 一致） |
+| **CNAE 内部叫法** | CloudUSN |
+| **匹配模式** | custom 或 all（需要全部满足） |
+| **必需校验** | true |
+
+**检查路径**（四个路径都要存在文件）：
+
+```
+- omo/mml/*.txt
+- vnrs/mml/*.txt
+- 0/mml/*.txt
+- usn/mml/*.txt
+```
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析：`vUSN_NE=xxx` → 提取类型 `vUSN`
+2. 查找配置中的 `vUSN` 规则
+3. 检查四个路径，每个路径下都必须存在至少一个 `*.txt` 文件：
+   - `{网元文件夹}/omo/mml/*.txt`
+   - `{网元文件夹}/vnrs/mml/*.txt`
+   - `{网元文件夹}/0/mml/*.txt`
+   - `{网元文件夹}/usn/mml/*.txt`
+4. 只有四个路径都满足，校验才通过
+
+---
+
+### 10.4 已核对的简单网元类型配置
+
+#### 10.4.1 ATS
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `ATS_NE=xxx` |
+| **配置文件键名** | `ATS`（与 neinfo.txt 一致） |
+| **匹配模式** | any（任意一个满足即可） |
+| **路径** | dataconfiguration |
+| **文件模式** | `*.tar.gz`, `*.zip`, `ALLME_*.txt` |
+| **必需校验** | true |
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析：`ATS_NE=xxx` → 提取类型 `ATS`
+2. 查找配置中的 `ATS` 规则
+3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.tar.gz` 文件
+   - 任意 `.zip` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+---
+
+#### 10.4.2 CSCF
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `CSCF_NE=xxx` |
+| **配置文件键名** | `CSCF`（与 neinfo.txt 一致） |
+| **CNAE 内部叫法** | CSC |
+| **匹配模式** | any（任意一个满足即可） |
+| **路径** | dataconfiguration |
+| **文件模式** | `*.tar.gz`, `*.zip`, `ALLME_*.txt` |
+| **必需校验** | true |
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析：`CSCF_NE=xxx` → 提取类型 `CSCF`
+2. 查找配置中的 `CSCF` 规则（不是 CSC）
+3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.tar.gz` 文件
+   - 任意 `.zip` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+---
+
+#### 10.4.3 SE2900
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `SE2900_NE=xxx` |
+| **配置文件键名** | `SE2900`（与 neinfo.txt 一致） |
+| **匹配模式** | any（任意一个满足即可） |
+| **路径** | dataconfiguration |
+| **文件模式** | `*.zip`, `*.txt`, `*.tar.gz` |
+| **必需校验** | true |
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析出网元类型（如 `SE2900_NE=xxx`）
+2. 查找配置中的 `SE2900` 规则
+3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.txt` 文件
+   - 任意 `.tar.gz` 文件
+
+---
+
+#### 10.4.4 CloudSE2980
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `CloudSE2980_NE=xxx` |
+| **配置文件键名** | `CloudSE2980`（与 neinfo.txt 一致） |
+| **匹配模式** | any（任意一个满足即可） |
+| **路径** | dataconfiguration |
+| **文件模式** | `*.txt`, `*.tar.gz`, `*.zip` |
+| **必需校验** | true |
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析出网元类型（如 `CloudSE2980_NE=xxx`）
+2. 查找配置中的 `CloudSE2980` 规则
+3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.txt` 文件
+   - 任意 `.tar.gz` 文件
+   - 任意 `.zip` 文件
+
+---
+
+#### 10.4.5 SPSV3（CNAE 内部叫法：SPS）
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `SPSV3_NE=xxx` |
+| **配置文件键名** | `SPSV3`（与 neinfo.txt 一致） |
+| **CNAE 内部叫法** | SPS |
+| **匹配模式** | any（任意一个满足即可） |
+| **路径** | dataconfiguration |
+| **文件模式** | `*.zip`, `*.tar.gz`, `ALLME_*.txt` |
+| **必需校验** | true |
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析：`SPSV3_NE=xxx` → 提取类型 `SPSV3`
+2. 查找配置中的 `SPSV3` 规则
+3. 检查路径：`{网元数据文件夹}/dataconfiguration/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.zip` 文件
+   - 任意 `.tar.gz` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
+
+---
+
+#### 10.4.6 USC
+
+| 项目 | 配置 |
+|------|------|
+| **neinfo.txt 标识** | `USC_NE=xxx` |
+| **配置文件键名** | `USC`（与 neinfo.txt 一致） |
+| **匹配模式** | any（任意一个满足即可） |
+| **路径** | USC/conf |
+| **文件模式** | `*.tar.gz`, `*.zip`, `ALLME_*.txt` |
+| **必需校验** | true |
+
+**校验逻辑**：
+1. 从 neinfo.txt 解析出网元类型（如 `USC_NE=xxx`）
+2. 查找配置中的 `USC` 规则
+3. 检查路径：`{网元数据文件夹}/USC/conf/`
+4. 判断条件：该目录下只要存在以下**任意一种**文件即通过：
+   - 任意 `.tar.gz` 文件
+   - 任意 `.zip` 文件
+   - 以 `ALLME_` 开头的 `.txt` 文件
 
 ---
 
