@@ -3,13 +3,12 @@ import sys
 import traceback
 from datetime import datetime
 import PySimpleGUI as sg
-from utils.file_scanner import FileScanner
 # 添加当前目录到sys.path以支持模块导入
 if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from utils.file_scanner import FileScanner
 
-# 设置主题
 sg.theme('LightGrey')
 sg.set_options(font=('Helvetica', 10))
 
