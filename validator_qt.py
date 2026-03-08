@@ -433,102 +433,36 @@ class ValidatorApp(QMainWindow):
                 package_color = '#666666'  # Gray
 
             # Generate detail information
-            detail = ''
+            # Start with Valid status
             status = 'Valid'
             status_color = '#4CAF50'
+            detail = ''
+
+            # Check if there are any issues (package-level or NE-level)
+            has_issues = False
 
             if package_type == 'NIC Package':
-                time = package_details.get('time', '')
-                if time:
-                    detail = f'Time: {time}'
-
-                # 处理 NIC 校验结果
                 nic_validation = file_info.get('nic_validation')
                 if nic_validation:
-                    # 检查是否缺失 neinfo.txt
-                    missing_neinfo = nic_validation.get('missing_neinfo', False)
-                    # 检查是否所有网元类型都不支持
-                    all_unsupported = nic_validation.get('all_unsupported', False)
-                    # 检查采集时间范围是否过短
-                    collect_range_too_short = nic_validation.get('collect_range_too_short', False)
-                    # 检查是否为匿名化采集
-                    anonymous_mode_invalid = nic_validation.get('anonymous_mode_invalid', False)
+                    # Check package-level issues
+                    if not nic_validation.get('valid', True):
+                        has_issues = True
+                        status = 'Invalid'
+                        status_color = '#F44336'
 
-                    # 处理静态 MML 校验结果
+                    # Check NE-level issues
                     static_mml_validation = nic_validation.get('static_mml_validation')
                     if static_mml_validation:
-                        total_ne = static_mml_validation.get('total_ne_count', 0)
-                        valid_ne = static_mml_validation.get('valid_ne_count', 0)
                         invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
-
-                        # 如果有无效的 NE，添加到 detail
                         if invalid_ne > 0:
-                            if detail:
-                                detail += ' | '
-                            detail += f'NE Static MML: {valid_ne}/{total_ne} valid, {invalid_ne} invalid'
-                        else:
-                            # 全部 NE 的静态 MML 都有效
-                            if detail:
-                                detail += ' | '
-                            detail += f'NE Static MML: {valid_ne}/{total_ne} valid'
+                            has_issues = True
+                            if status == 'Valid':
+                                status = 'Warning'
+                                status_color = '#FF9800'
 
-                    if not nic_validation.get('valid', True):
-                        # NIC 校验失败
-                        if missing_neinfo:
-                            # 缺失 neinfo.txt - 标记为 Invalid（红色）
-                            status = 'Invalid'
-                            status_color = '#F44336'  # Red
-                            detail = 'Invalid NIC package format: Missing required file neinfo.txt'
-                        elif anonymous_mode_invalid:
-                            # 匿名化采集 - 标记为 Invalid（红色）
-                            status = 'Invalid'
-                            status_color = '#F44336'  # Red
-                            detail = 'The NIC package was collected in anonymous mode, cannot meet network assessment requirements. Please re-collect in non-anonymous mode.'
-                        elif collect_range_too_short:
-                            # 采集时间范围过短 - 标记为 Invalid（红色）
-                            status = 'Invalid'
-                            status_color = '#F44336'  # Red
-                            hours = nic_validation.get('collect_range_hours', 0)
-                            detail = f'NIC package collection time range is too short, cannot support network assessment requirements. System requires at least 24h, please re-collect. (Actual: {hours}h)'
-                        elif all_unsupported:
-                            # 所有网元类型都不支持 - 标记为 Invalid（红色）
-                            status = 'Invalid'
-                            status_color = '#F44336'  # Red
-                            detail = 'No CNAE-supported network elements found in this NIC package, no need to collect'
-                        else:
-                            # 其他错误 - 标记为 Warning（橙色）
-                            status = 'Warning'
-                            status_color = '#FF9800'  # Orange
-
-                            # 收集所有问题
-                            issues = []
-
-                            # 缺失的网元数据文件夹
-                            missing_folders = nic_validation.get('missing_folders', [])
-                            if missing_folders:
-                                issues.append(f"Missing {len(missing_folders)} NE data folders")
-
-                            # 缺失的关键文件
-                            missing_files = nic_validation.get('missing_files', {})
-                            if missing_files:
-                                total_missing = sum(len(files['files']) for files in missing_files.values())
-                                issues.append(f"Missing {total_missing} key files")
-
-                            # 错误信息
-                            errors = nic_validation.get('errors', [])
-                            if errors:
-                                issues.append(f"Errors: {'; '.join(errors[:2])}")
-
-                            # 追加问题到 detail
-                            if issues:
-                                if detail:
-                                    detail += ' | '
-                                detail += '; '.join(issues)
-
-            elif package_type == 'Unknown':
-                note = package_details.get('note', '')
-                if note:
-                    detail = note
+            # Only show "View Details" button for failed/warning packages
+            if has_issues:
+                detail = '查看详情'
 
             self.all_valid_files.append({
                 'file_info': file_info,
