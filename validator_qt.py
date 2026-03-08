@@ -28,6 +28,14 @@ from utils.file_scanner import FileScanner
 from utils.package_identifier import PackageIdentifier
 from utils.design_tokens import COLORS, SPACING, SIZES, BORDER_RADIUS
 from utils.typography import FONT_SIZE, FONT_WEIGHT
+
+# Excel export support
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    EXCEL_AVAILABLE = True
+except ImportError:
+    EXCEL_AVAILABLE = False
 from exceptions import (
     ValidationException,
     DirectoryNotFoundException,
@@ -702,13 +710,15 @@ class ValidatorApp(QMainWindow):
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save Results",
-            f"validation_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-            "Text files (*.txt);;CSV files (*.csv);;All files (*.*)"
+            f"validation_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            "Excel files (*.xlsx);;Text files (*.txt);;CSV files (*.csv);;All files (*.*)"
         )
 
         if file_path:
             try:
-                if file_path.endswith('.csv'):
+                if file_path.endswith('.xlsx'):
+                    self._export_excel(file_path)
+                elif file_path.endswith('.csv'):
                     self._export_csv(file_path)
                 else:
                     self._export_txt(file_path)
@@ -1114,6 +1124,357 @@ class ValidatorApp(QMainWindow):
                     self.table.item(row, 5).text(),
                     self.table.item(row, 6).text()
                 ])
+
+    def _export_excel(self, filename):
+        """Export to Excel file with multiple worksheets"""
+        if not EXCEL_AVAILABLE:
+            raise ImportError("openpyxl is not installed. Install it with: pip install openpyxl")
+
+        wb = Workbook()
+        wb.remove(wb.active)  # Remove default sheet
+
+        # Define styles
+        header_font = Font(bold=True, color='333333')
+        header_fill = PatternFill(start_color='E3F2FD', end_color='E3F2FD', fill_type='solid')
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        left_alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+
+        # 1. Summary Sheet
+        ws_summary = wb.create_sheet('Summary')
+        self._create_summary_sheet(ws_summary, header_font, header_fill, border, center_alignment)
+
+        # 2. Package List Sheet
+        ws_package = wb.create_sheet('Package List')
+        self._create_package_list_sheet(ws_package, header_font, header_fill, border, left_alignment)
+
+        # 3. NE Validation Sheet
+        ws_ne_validation = wb.create_sheet('NE Validation')
+        self._create_ne_validation_sheet(ws_ne_validation, header_font, header_fill, border, left_alignment)
+
+        # 4. NE Errors Sheet
+        ws_ne_errors = wb.create_sheet('NE Errors')
+        self._create_ne_errors_sheet(ws_ne_errors, header_font, header_fill, border, left_alignment)
+
+        # Save workbook
+        wb.save(filename)
+
+    def _create_summary_sheet(self, ws, header_font, header_fill, border, center_alignment):
+        """Create Summary sheet with statistics"""
+        # Headers
+        headers = ['统计项', '数值']
+        ws.append(headers)
+
+        for col in range(1, len(headers) + 1):
+            cell = ws.cell(1, col)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = center_alignment
+            cell.border = border
+
+        # Data
+        stats = self.scanner.get_statistics() if self.scanner else {}
+        total_files = stats.get('total_files', 0)
+        valid_files = stats.get('valid_files', 0)
+        invalid_files = stats.get('illegal_files', 0)
+
+        row = 2
+        ws.append(['验证时间', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        ws.append(['扫描目录', self.current_dir or '-'])
+        ws.append([])
+        ws.append(['包总数', total_files])
+        ws.append(['Pass', valid_files])
+        ws.append(['Fail', invalid_files])
+        ws.append([])
+        row += 8
+
+        # NE statistics
+        total_ne = 0
+        ne_pass = 0
+        ne_static_mml_fail = 0
+        ne_scenario_fail = 0
+
+        for file_data in self.all_invalid_files:
+            validation = file_data.get('validation_result', {})
+            static_mml_validation = validation.get('static_mml_validation')
+            scenario_validation = validation.get('scenario_validation')
+
+            if static_mml_validation:
+                total_ne = static_mml_validation.get('total_ne_count', 0)
+                ne_pass = static_mml_validation.get('valid_ne_count', 0)
+                ne_static_mml_fail = static_mml_validation.get('invalid_ne_count', 0)
+                ne_scenario_fail = scenario_validation.get('invalid_ne_count', 0) if scenario_validation else 0
+                break
+
+        ws.append(['网元总数', total_ne])
+        ws.append(['网元 Pass', ne_pass])
+        ws.append(['网元 Static MML Fail', ne_static_mml_fail])
+        ws.append(['网元 Scenario Fail', ne_scenario_fail])
+
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 30
+
+    def _create_package_list_sheet(self, ws, header_font, header_fill, border, left_alignment):
+        """Create Package List sheet with all package information"""
+        headers = ['文件名', '路径', '大小', '格式', '包类型', '状态', '异常信息']
+        ws.append(headers)
+
+        for col in range(1, len(headers) + 1):
+            cell = ws.cell(1, col)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = left_alignment
+            cell.border = border
+
+        # Data rows
+        row = 2
+        for file_data in self.all_valid_files + self.all_invalid_files:
+            status = file_data.get('status', 'Unknown')
+            # Extract error message from validation result
+            validation = file_data.get('validation_result', {})
+            error_msg = '-'
+
+            if not validation.get('valid', True):
+                errors = validation.get('errors', [])
+                if errors:
+                    error_msg = errors[0] if isinstance(errors[0], str) else str(errors[0])
+
+            ws.append([
+                file_data.get('name', ''),
+                file_data.get('path', ''),
+                file_data.get('size', ''),
+                file_data.get('format', ''),
+                file_data.get('package_type', ''),
+                status,
+                error_msg
+            ])
+
+            # Set status color
+            status_cell = ws.cell(row, 6)
+            if status == 'Pass':
+                status_cell.font = Font(color='008000', bold=True)
+            elif status == 'Fail':
+                status_cell.font = Font(color='CC0000', bold=True)
+            elif status == 'Warning':
+                status_cell.font = Font(color='FF9800', bold=True)
+
+            # Apply border to all cells
+            for col in range(1, 8):
+                ws.cell(row, col).border = border
+                ws.cell(row, col).alignment = left_alignment
+
+            row += 1
+
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 40
+        ws.column_dimensions['C'].width = 10
+        ws.column_dimensions['D'].width = 10
+        ws.column_dimensions['E'].width = 12
+        ws.column_dimensions['F'].width = 8
+        ws.column_dimensions['G'].width = 50
+
+    def _create_ne_validation_sheet(self, ws, header_font, header_fill, border, left_alignment):
+        """Create NE Validation sheet with merged cells"""
+        headers = ['#', 'NE Name', 'NE Type', 'Status', 'Error Type', 'Issues']
+        ws.append(headers)
+
+        for col in range(1, len(headers) + 1):
+            cell = ws.cell(1, col)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = left_alignment
+            cell.border = border
+
+        row = 2
+        idx = 1
+
+        for file_data in self.all_invalid_files:
+            validation = file_data.get('validation_result', {})
+            static_mml_validation = validation.get('static_mml_validation')
+            scenario_validation = validation.get('scenario_validation')
+
+            if not static_mml_validation and not scenario_validation:
+                continue
+
+            # Combine results from both validators
+            ne_combined_results = {}
+
+            if static_mml_validation:
+                for ne_result in static_mml_validation.get('ne_results', []):
+                    ne_key = (ne_result.get('ne_name'), ne_result.get('ne_type'))
+                    ne_combined_results[ne_key] = {
+                        'static_mml': ne_result,
+                        'scenario': None
+                    }
+
+            if scenario_validation:
+                for ne_result in scenario_validation.get('ne_results', []):
+                    ne_key = (ne_result.get('ne_name'), ne_result.get('ne_type'))
+                    if ne_key in ne_combined_results:
+                        ne_combined_results[ne_key]['scenario'] = ne_result
+                    else:
+                        ne_combined_results[ne_key] = {
+                            'static_mml': None,
+                            'scenario': ne_result
+                        }
+
+            # Generate rows
+            for ne_key, results in ne_combined_results.items():
+                ne_name, ne_type = ne_key
+                static_mml_result = results.get('static_mml')
+                scenario_result = results.get('scenario')
+
+                # Collect errors
+                errors = []
+
+                if static_mml_result and not static_mml_result.get('valid'):
+                    missing_paths = static_mml_result.get('missing_paths', [])
+                    for path in missing_paths:
+                        errors.append(('Static MML Missing', path))
+
+                if scenario_result and not scenario_result.get('valid'):
+                    error_msg = scenario_result.get('error', '')
+                    if error_msg:
+                        errors.append(('Scenario Error', error_msg))
+
+                # Determine status
+                status = 'Pass'
+                status_color = '008000'
+                if errors:
+                    status = 'Fail'
+                    status_color = 'CC0000'
+
+                num_rows = max(1, len(errors))
+
+                # First 3 columns with rowspan (merged cells)
+                for error_row_num in range(num_rows):
+                    if error_row_num == 0:
+                        # Add cells that will be merged
+                        ws.cell(row, 1, idx)
+                        ws.cell(row, 2, ne_name)
+                        ws.cell(row, 3, ne_type)
+                        ws.cell(row, 4, status)
+
+                        # Merge cells for rowspan
+                        if num_rows > 1:
+                            ws.merge_cells(f'A{row}:A{row + num_rows - 1}')
+                            ws.merge_cells(f'B{row}:B{row + num_rows - 1}')
+                            ws.merge_cells(f'C{row}:C{row + num_rows - 1}')
+                            ws.merge_cells(f'D{row}:D{row + num_rows - 1}')
+
+                    # Error Type and Issues columns
+                    if errors:
+                        error_type, error_msg = errors[error_row_num]
+                        ws.cell(row, 5, error_type)
+                        ws.cell(row, 6, error_msg)
+                    else:
+                        ws.cell(row, 5, '-')
+                        ws.cell(row, 6, '-')
+
+                    # Apply styles
+                    for col in range(1, 7):
+                        cell = ws.cell(row, col)
+                        cell.border = border
+                        cell.alignment = left_alignment
+
+                    # Status color (only first row, others are merged)
+                    if error_row_num == 0:
+                        ws.cell(row, 4).font = Font(color=status_color, bold=True)
+
+                    row += 1
+
+                idx += 1
+
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 5
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 12
+        ws.column_dimensions['D'].width = 10
+        ws.column_dimensions['E'].width = 20
+        ws.column_dimensions['F'].width = 60
+
+    def _create_ne_errors_sheet(self, ws, header_font, header_fill, border, left_alignment):
+        """Create NE Errors sheet with only errors"""
+        headers = ['包文件名', 'NE Name', 'NE Type', 'Error Type', 'Issues']
+        ws.append(headers)
+
+        for col in range(1, len(headers) + 1):
+            cell = ws.cell(1, col)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = left_alignment
+            cell.border = border
+
+        row = 2
+
+        for file_data in self.all_invalid_files:
+            file_name = file_data.get('name', '')
+            validation = file_data.get('validation_result', {})
+            static_mml_validation = validation.get('static_mml_validation')
+            scenario_validation = validation.get('scenario_validation')
+
+            if not static_mml_validation and not scenario_validation:
+                continue
+
+            # Collect NE errors
+            ne_combined_results = {}
+
+            if static_mml_validation:
+                for ne_result in static_mml_validation.get('ne_results', []):
+                    ne_key = (ne_result.get('ne_name'), ne_result.get('ne_type'))
+                    if ne_key not in ne_combined_results:
+                        ne_combined_results[ne_key] = {'static_mml': ne_result, 'scenario': None}
+                    else:
+                        ne_combined_results[ne_key]['static_mml'] = ne_result
+
+            if scenario_validation:
+                for ne_result in scenario_validation.get('ne_results', []):
+                    ne_key = (ne_result.get('ne_name'), ne_result.get('ne_type'))
+                    if ne_key not in ne_combined_results:
+                        ne_combined_results[ne_key] = {'static_mml': None, 'scenario': ne_result}
+                    else:
+                        ne_combined_results[ne_key]['scenario'] = ne_result
+
+            # Add error rows
+            for ne_key, results in ne_combined_results.items():
+                ne_name, ne_type = ne_key
+                has_errors = False
+
+                # Check static MML errors
+                if results.get('static_mml') and not results['static_mml'].get('valid'):
+                    missing_paths = results['static_mml'].get('missing_paths', [])
+                    for path in missing_paths:
+                        ws.append([file_name, ne_name, ne_type, 'Static MML Missing', path])
+                        for col in range(1, 6):
+                            ws.cell(row, col).border = border
+                            ws.cell(row, col).alignment = left_alignment
+                        row += 1
+                    has_errors = True
+
+                # Check scenario errors
+                if results.get('scenario') and not results['scenario'].get('valid'):
+                    error_msg = results['scenario'].get('error', '')
+                    if error_msg:
+                        ws.append([file_name, ne_name, ne_type, 'Scenario Error', error_msg])
+                        for col in range(1, 6):
+                            ws.cell(row, col).border = border
+                            ws.cell(row, col).alignment = left_alignment
+                        row += 1
+                    has_errors = True
+
+        # Adjust column widths
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 12
+        ws.column_dimensions['D'].width = 20
+        ws.column_dimensions['E'].width = 60
 
 
 def main():
