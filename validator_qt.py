@@ -885,16 +885,7 @@ class ValidatorApp(QMainWindow):
         if missing_folders:
             issues.append(('Warning', f'Missing {len(missing_folders)} NE data folders'))
 
-        # Check missing files
-        missing_files = nic_validation.get('missing_files', {})
-        if missing_files:
-            total_missing = sum(len(files['files']) for files in missing_files.values())
-            issues.append(('Warning', f'Missing {total_missing} key files'))
-
-        # Check unsupported types
-        unsupported_types = nic_validation.get('unsupported_types', [])
-        if unsupported_types:
-            issues.append(('Warning', f'{len(unsupported_types)} unsupported NE types'))
+        # Skip NE-level issues (missing files, unsupported types) - these are shown in NE details table
 
         # Add rows
         for idx, (issue_type, description) in enumerate(issues, 1):
