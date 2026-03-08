@@ -220,8 +220,8 @@ class ValidatorApp(QMainWindow):
         # Status filter (ComboBox)
         self.filter_widgets['status'] = QComboBox()
         self.filter_widgets['status'].addItem("All")
-        self.filter_widgets['status'].addItem("Valid")
-        self.filter_widgets['status'].addItem("Invalid")
+        self.filter_widgets['status'].addItem("Pass")
+        self.filter_widgets['status'].addItem("Fail")
         self.filter_widgets['status'].setFixedWidth(100)
         self.filter_widgets['status'].currentTextChanged.connect(self.apply_filters)
         filter_layout.addWidget(QLabel("Status:"))
@@ -427,7 +427,7 @@ class ValidatorApp(QMainWindow):
             self.table.setSpan(0, 0, 1, 7)  # Merge all columns
 
             # Update statistics
-            self.stats_label.setText("Total: 0 files | Valid: 0 | Invalid: 0")
+            self.stats_label.setText("Total: 0 files | Pass: 0 | Fail: 0")
             self.statusBar.showMessage("Scan completed: No files found")
             self.export_btn.setEnabled(False)
 
@@ -455,8 +455,8 @@ class ValidatorApp(QMainWindow):
                 package_color = COLORS['text_secondary']
 
             # Generate detail information
-            # Start with Valid status
-            status = 'Valid'
+            # Start with Pass status
+            status = 'Pass'
             status_color = COLORS['success']
             detail = ''
 
@@ -469,7 +469,7 @@ class ValidatorApp(QMainWindow):
                     # Check package-level issues
                     if not nic_validation.get('valid', True):
                         has_issues = True
-                        status = 'Invalid'
+                        status = 'Fail'
                         status_color = COLORS['error']
 
                     # Check NE-level issues
@@ -478,7 +478,7 @@ class ValidatorApp(QMainWindow):
                         invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
                         if invalid_ne > 0:
                             has_issues = True
-                            if status == 'Valid':
+                            if status == 'Pass':
                                 status = 'Warning'
                                 status_color = COLORS['warning']
 
@@ -509,7 +509,7 @@ class ValidatorApp(QMainWindow):
                 'size': self._format_size(file_info['size']),
                 'format': self._get_file_type(file_info['name']),
                 'package_type': '-',
-                'status': 'Invalid',
+                'status': 'Fail',
                 'detail': 'Invalid file format',
                 'status_color': '#F44336',
                 'package_color': '#666666'
@@ -521,8 +521,8 @@ class ValidatorApp(QMainWindow):
         # Update statistics
         self.stats_label.setText(
             f"Total: {stats['total_files']} files | "
-            f"Valid: {stats['valid_files']} | "
-            f"Invalid: {stats['illegal_files']}"
+            f"Pass: {stats['valid_files']} | "
+            f"Fail: {stats['illegal_files']}"
         )
 
         self.statusBar.showMessage(f"Scan completed: {stats['total_files']} files found")
@@ -535,9 +535,9 @@ class ValidatorApp(QMainWindow):
                 "Scan Completed",
                 f"Scan completed!\n\n"
                 f"Total files: {stats['total_files']}\n"
-                f"Valid files: {stats['valid_files']}\n"
-                f"Invalid files: {stats['illegal_files']}\n\n"
-                f"Please check the invalid files in the table."
+                f"Pass: {stats['valid_files']}\n"
+                f"Fail: {stats['illegal_files']}\n\n"
+                f"Please check the failed files in the table."
             )
         else:
             QMessageBox.information(
@@ -718,8 +718,8 @@ class ValidatorApp(QMainWindow):
             if stats:
                 f.write(f"Statistics:\n")
                 f.write(f"  Total files: {stats['total_files']}\n")
-                f.write(f"  Valid files: {stats['valid_files']}\n")
-                f.write(f"  Invalid files: {stats['illegal_files']}\n")
+                f.write(f"  Pass: {stats['valid_files']}\n")
+                f.write(f"  Fail: {stats['illegal_files']}\n")
                 f.write("\n")
 
             # Detailed results
@@ -756,8 +756,8 @@ class ValidatorApp(QMainWindow):
 
         # Check status - only show details for failed/warning packages
         status = file_data.get('status', '')
-        if status == 'Valid':
-            # Valid package - no details needed
+        if status == 'Pass':
+            # Pass package - no details needed
             return
 
         # Show details dialog for failed/warning packages
@@ -968,10 +968,10 @@ class ValidatorApp(QMainWindow):
 
                     # Status
                     if ne_valid is True:
-                        status = 'Valid'
+                        status = 'Pass'
                         status_color = '#4CAF50'
                     elif ne_valid is False:
-                        status = 'Invalid'
+                        status = 'Fail'
                         status_color = '#F44336'
                     else:
                         status = 'Not Required'
@@ -1019,9 +1019,9 @@ class ValidatorApp(QMainWindow):
                 <tr style="background-color: #F5F5F5; border-top: 2px solid #E3F2FD;">
                     <td colspan="5" style="padding: 12px; font-weight: bold;">
                         Summary: Total: {total_ne} |
-                        <span style="color: #4CAF50;">Valid: {valid_ne}</span> |
+                        <span style="color: #4CAF50;">Pass: {valid_ne}</span> |
                         <span style="color: #FF9800;">Warning: {warning_ne}</span> |
-                        <span style="color: #F44336;">Invalid: {invalid_ne}</span>
+                        <span style="color: #F44336;">Fail: {invalid_ne}</span>
                     </td>
                 </tr>
             """
