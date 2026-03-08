@@ -38,6 +38,9 @@ scenarios:
   UPCF:
     en: Cloud health check scenario
     zh: 云巡检场景
+  UPCC:
+    en: Offline health check scenario
+    zh: 离线健康检查信息收集场景
 error_messages:
   scenario_mismatch:
     en: 'Collection scenario error: NE ''{ne_name}'' ({ne_type}) should use ''{expected_scenario}''
