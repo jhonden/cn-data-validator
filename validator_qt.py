@@ -193,7 +193,7 @@ class ValidatorApp(QMainWindow):
 
         # Filter label
         filter_label = QLabel("Filter:")
-        filter_label.setFont(QFont(FONTS['default'], FONT_SIZE['small'], FONT_WEIGHT['bold']))
+        filter_label.setFont(QFont(FONTS['default'], FONT_SIZE['small'], QFont.Weight.Bold))
         filter_label.setStyleSheet(f"color: {COLORS['text_primary']};")
         filter_layout.addWidget(filter_label)
 
