@@ -26,8 +26,8 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 from utils.file_scanner import FileScanner
 from utils.package_identifier import PackageIdentifier
-from utils.design_tokens import COLORS, SPACING, SIZES, BORDER_RADIUS, FONTS
-from utils.typography import FONT_SIZE, FONT_WEIGHT
+from utils.design_tokens import COLORS, SPACING, SIZES, BORDER_RADIUS
+from utils.typography import FONTS, FONT_SIZE, FONT_WEIGHT
 from exceptions import (
     ValidationException,
     DirectoryNotFoundException,
