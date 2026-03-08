@@ -978,11 +978,20 @@ class ValidatorApp(QMainWindow):
                         error_type = '-'
 
                     # Issues
-                    missing_paths = ne_result.get('missing_paths', [])
-                    if missing_paths:
-                        issues = f'<span style="color: #F44336;">{", ".join(missing_paths)}</span>'
+                    # Check for Static MML Missing
+                    static_mml_missing = ne_result.get('missing_paths', [])
+                    if static_mml_missing:
+                        issues = f'<span style="color: #F44336;">{", ".join(static_mml_missing)}</span>'
                     else:
                         issues = '-'
+
+                    # Check for scenario error
+                    scenario_error = ne_result.get('scenario_error', None)
+                    if scenario_error:
+                        if issues == '-':
+                            issues = f'<span style="color: #FF9800;">{scenario_error}</span>'
+                        else:
+                            issues = f'<span style="color: #F44336;">{", ".join(static_mml_missing)}; <span style="color: #FF9800;">{scenario_error}</span></span>'
 
                     # Row style
                     row_style = 'background-color: #ffffff;' if idx % 2 == 1 else 'background-color: #fafafa;'

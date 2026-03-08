@@ -1,0 +1,101 @@
+# Collection Scenario Configuration
+# 采集场景配置
+# 每种网元类型的有效采集场景配置
+# 需要支持中英文的采集场景名称
+
+scenarios:
+  # ATS (Access Transfer Server)
+  ATS:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # CSCF (Call Session Control Function)
+  CSCF:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # vUGW (User Gateway)
+  vUGW:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # vCG (Converged Gateway)
+  vCG:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # vUSN (User Service Node)
+  vUSN:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # USC (User Subscription Center)
+  USC:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # UNC (User Network Controller)
+  UNC:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # UDG (Unified Data Gateway)
+  UDG:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # UPCC (Unified Packet Control Center)
+  UPCC:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # UPCF (User Plane Control Function)
+  UPCF:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # HSS9860 (Home Subscriber Server)
+  HSS9860:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # SE2900 (Signaling EPC)
+  SE2900:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # CloudSE2980 (Cloud Signaling EPC)
+  CloudSE2980:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # ENS (Enhanced Node B Service)
+  ENS:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+  # CCF (Call Control Function)
+  CCF:
+    en: "Offline health check scenario"
+    zh: "离线健康检查场景"
+    description: "Offline health check configuration validation"
+
+# 错误提示模板（支持中英文）
+error_messages:
+  scenario_mismatch:
+    en: "Collection scenario error: NE '{ne_name}' ({ne_type}) should use '{expected_scenario}' collection scenario"
+    zh: "网元采集场景错误：网元'{ne_name}'（{ne_type}）应该使用'{expected_scenario}'采集场景"

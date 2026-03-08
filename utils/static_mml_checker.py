@@ -18,19 +18,31 @@ import yaml
 class StaticMMLChecker:
     """Static MML Configuration Checker"""
 
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, scenario_config_path: Optional[str] = None):
         """
         Initialize checker and load configuration
 
         Args:
             config_path: Path to configuration file (static_mml_config.yaml)
+            scenario_config_path: Path to scenario configuration file (scenario_config.yaml)
         """
         self.config_path = config_path
         self.config = self._load_config()
 
+        # Load scenario configuration
+        if scenario_config_path:
+            self.scenario_config = self._load_scenario_config(scenario_config_path)
+        else:
+            self.scenario_config = None
+
     def _load_config(self) -> Dict:
         """Load configuration file"""
         with open(self.config_path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+
+    def _load_scenario_config(self, scenario_path: str) -> Dict:
+        """Load scenario configuration file"""
+        with open(scenario_path, 'r', encoding='utf-8') as f:
             return yaml.safe_load(f)
 
     def check_package(self, ne_parent_path: str, ne_instances: List) -> Dict:
@@ -50,6 +62,10 @@ class StaticMMLChecker:
                 'ne_results': List[Dict]
             }
         """
+        # Check collection scenario first
+        scenario_errors = []
+        scenario_error_count = 0
+
         # Check each NE
         results = []
         for ne_instance in ne_instances:
@@ -60,6 +76,23 @@ class StaticMMLChecker:
                 ne_instance.ne_type,
                 ne_instance.name
             )
+
+            # Check for collection scenario errors
+            scenario_result = self._check_collection_scenario(
+                ne_parent_path,
+                ne_instance.ne_type,
+                ne_instance.name
+            )
+            if scenario_result:
+                result['valid'] = False
+                result['scenario_error'] = scenario_result
+                scenario_error_count += 1
+                scenario_errors.append({
+                    'ne_name': ne_instance.name,
+                    'ne_type': ne_instance.ne_type,
+                    'error': scenario_result
+                })
+
             results.append(result)
 
         # Aggregate results
@@ -68,8 +101,71 @@ class StaticMMLChecker:
             'valid_ne_count': sum(1 for r in results if r['valid'] is True),
             'warning_ne_count': sum(1 for r in results if r['valid'] is None),
             'invalid_ne_count': sum(1 for r in results if r['valid'] is False),
-            'ne_results': results
+            'ne_results': results,
+            'scenario_error_count': scenario_error_count,
+            'scenario_errors': scenario_errors if scenario_error_count > 0 else []
         }
+
+    def _check_collection_scenario(self, ne_parent_path: str, ne_type: str, ne_name: str) -> Optional[str]:
+        """
+        Check collection scenario by reading taskinfo.txt
+
+        Args:
+            ne_parent_path: NE data parent folder path
+            ne_type: NE type
+            ne_name: NE instance name
+
+        Returns:
+            Error message if scenario mismatch, None otherwise
+        """
+        if not self.scenario_config:
+            return None
+
+        # Read taskinfo.txt to get scenario
+        taskinfo_path = os.path.join(ne_parent_path, 'taskinfo.txt')
+        if not os.path.exists(taskinfo_path):
+            return None
+
+        try:
+            with open(taskinfo_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.startswith('scenario_group_name='):
+                        # Extract scenario name after '=' and before ';'
+                        scenario_part = line.split('=')[1].split(';')[0]
+                        return self._format_scenario_error(ne_type, ne_name, scenario_part)
+        except Exception as e:
+            return self._format_scenario_error(ne_type, ne_name, f"Error reading taskinfo.txt: {str(e)}")
+
+    def _format_scenario_error(self, ne_type: str, ne_name: str, actual_scenario: str) -> str:
+        """
+        Format scenario error message with language support
+
+        Args:
+            ne_type: NE type
+            ne_name: NE instance name
+            actual_scenario: Actual scenario name from taskinfo.txt
+
+        Returns:
+            Formatted error message
+        """
+        # Get language from config (default to English)
+        ui_language = self.scenario_config.get('ui_language', 'en')
+
+        # Get expected scenario for this NE type
+        expected_scenario_info = self.scenario_config.get('scenarios', {}).get(ne_type, {})
+        expected_scenario = expected_scenario_info.get('en', '')
+
+        if not expected_scenario:
+            return None
+
+        # Compare and format error message
+        if actual_scenario != expected_scenario:
+            if ui_language == 'zh':
+                return f"网元采集场景错误：网元'{ne_name}'（{ne_type}）应该使用'{expected_scenario}'采集场景"
+            else:
+                return f"Collection scenario error: NE '{ne_name}' ({ne_type}) should use '{expected_scenario}' collection scenario"
+
+        return None
 
     def check_ne(self, ne_folder_path: str, ne_type: str, ne_name: str) -> Dict:
         """
