@@ -1178,18 +1178,18 @@ class ValidatorApp(QMainWindow):
             cell.border = border
 
         # Data
-        stats = self.scanner.get_statistics() if self.scanner else {}
-        total_files = stats.get('total_files', 0)
-        valid_files = stats.get('valid_files', 0)
-        invalid_files = stats.get('illegal_files', 0)
+        all_files = self.all_valid_files + self.all_invalid_files
+        total_files = len(all_files)
+        pass_count = len([f for f in all_files if f.get('status') == 'Pass'])
+        fail_count = len([f for f in all_files if f.get('status') == 'Fail'])
 
         row = 2
         ws.append(['验证时间', datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
         ws.append(['扫描目录', self.current_dir or '-'])
         ws.append([])
         ws.append(['包总数', total_files])
-        ws.append(['Pass', valid_files])
-        ws.append(['Fail', invalid_files])
+        ws.append(['Pass', pass_count])
+        ws.append(['Fail', fail_count])
         ws.append([])
         row += 8
 
@@ -1295,7 +1295,7 @@ class ValidatorApp(QMainWindow):
 
     def _create_ne_validation_sheet(self, ws, header_font, header_fill, border, left_alignment):
         """Create NE Validation sheet with merged cells"""
-        headers = ['#', 'NE Name', 'NE Type', 'Status', 'Error Type', 'Issues']
+        headers = ['包文件名', '#', 'NE Name', 'NE Type', 'Status', 'Error Type', 'Issues']
         ws.append(headers)
 
         for col in range(1, len(headers) + 1):
@@ -1309,6 +1309,7 @@ class ValidatorApp(QMainWindow):
         idx = 1
 
         for file_data in self.all_valid_files + self.all_invalid_files:
+            file_name = file_data.get('name', '')
             file_info = file_data.get('file_info', {})
             nic_validation = file_info.get('nic_validation', {})
             static_mml_validation = nic_validation.get('static_mml_validation')
@@ -1367,14 +1368,15 @@ class ValidatorApp(QMainWindow):
 
                 num_rows = max(1, len(errors))
 
-                # First 3 columns with rowspan (merged cells)
+                # First 4 columns with rowspan (merged cells) including package name
                 for error_row_num in range(num_rows):
                     if error_row_num == 0:
                         # Add cells that will be merged
-                        ws.cell(row, 1, idx)
-                        ws.cell(row, 2, ne_name)
-                        ws.cell(row, 3, ne_type)
-                        ws.cell(row, 4, status)
+                        ws.cell(row, 1, file_name)
+                        ws.cell(row, 2, idx)
+                        ws.cell(row, 3, ne_name)
+                        ws.cell(row, 4, ne_type)
+                        ws.cell(row, 5, status)
 
                         # Merge cells for rowspan
                         if num_rows > 1:
@@ -1382,37 +1384,39 @@ class ValidatorApp(QMainWindow):
                             ws.merge_cells(f'B{row}:B{row + num_rows - 1}')
                             ws.merge_cells(f'C{row}:C{row + num_rows - 1}')
                             ws.merge_cells(f'D{row}:D{row + num_rows - 1}')
+                            ws.merge_cells(f'E{row}:E{row + num_rows - 1}')
 
                     # Error Type and Issues columns
                     if errors:
                         error_type, error_msg = errors[error_row_num]
-                        ws.cell(row, 5, error_type)
-                        ws.cell(row, 6, error_msg)
+                        ws.cell(row, 6, error_type)
+                        ws.cell(row, 7, error_msg)
                     else:
-                        ws.cell(row, 5, '-')
                         ws.cell(row, 6, '-')
+                        ws.cell(row, 7, '-')
 
                     # Apply styles
-                    for col in range(1, 7):
+                    for col in range(1, 8):
                         cell = ws.cell(row, col)
                         cell.border = border
                         cell.alignment = left_alignment
 
                     # Status color (only first row, others are merged)
                     if error_row_num == 0:
-                        ws.cell(row, 4).font = Font(color=status_color, bold=True)
+                        ws.cell(row, 5).font = Font(color=status_color, bold=True)
 
                     row += 1
 
                 idx += 1
 
         # Adjust column widths
-        ws.column_dimensions['A'].width = 5
-        ws.column_dimensions['B'].width = 15
-        ws.column_dimensions['C'].width = 12
-        ws.column_dimensions['D'].width = 10
-        ws.column_dimensions['E'].width = 20
-        ws.column_dimensions['F'].width = 60
+        ws.column_dimensions['A'].width = 20  # 包文件名
+        ws.column_dimensions['B'].width = 5   # #
+        ws.column_dimensions['C'].width = 15  # NE Name
+        ws.column_dimensions['D'].width = 12  # NE Type
+        ws.column_dimensions['E'].width = 10  # Status
+        ws.column_dimensions['F'].width = 20  # Error Type
+        ws.column_dimensions['G'].width = 60  # Issues
 
     def _create_ne_errors_sheet(self, ws, header_font, header_fill, border, left_alignment):
         """Create NE Errors sheet with only errors"""
