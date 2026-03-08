@@ -948,8 +948,7 @@ class ValidatorApp(QMainWindow):
             <table style="width: 100%; border-collapse: collapse; margin: 12px;">
                 <tr style="background-color: #f9f9f9; border-bottom: 2px solid #E3F2FD;">
                     <th style="padding: 10px; text-align: left; color: #555;">#</th>
-                    <th style="padding: 10px; text-align: left; color: #555;">NE Name</th>
-                    <th style="padding: 10px; text-align: left; color: #555;">Type</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">NE Name (Type)</th>
                     <th style="padding: 10px; text-align: left; color: #555;">Status</th>
                     <th style="padding: 10px; text-align: left; color: #555;">Error Type</th>
                     <th style="padding: 10px; text-align: left; color: #555;">Issues</th>
@@ -1007,7 +1006,8 @@ class ValidatorApp(QMainWindow):
                         error_type = 'Static MML Missing'
                         missing_paths = static_mml_result.get('missing_paths', [])
                         if missing_paths:
-                            issues.append(f'<span style="color: #F44336;">Static MML: {", ".join(missing_paths)}</span>')
+                            for i, path in enumerate(missing_paths, 1):
+                                issues.append(f'<div style="line-height: 1.5; margin-bottom: 3px;"><span style="color: #F44336;">{i}. Static MML: {path}</span></div>')
 
                 # Check scenario result
                 if scenario_result:
@@ -1019,11 +1019,11 @@ class ValidatorApp(QMainWindow):
                         error_type = error_type if error_type != '-' else 'Scenario Error'
                         scenario_error_msg = scenario_result.get('error')
                         if scenario_error_msg:
-                            issues.append(f'<span style="color: #FF9800;">Scenario: {scenario_error_msg}</span>')
+                            issues.append(f'<div style="line-height: 1.5; margin-bottom: 3px;"><span style="color: #FF9800;">Scenario: {scenario_error_msg}</span></div>')
 
                 # Format issues column
                 if issues:
-                    issues_html = '<br>'.join(issues)
+                    issues_html = ''.join(issues)
                 else:
                     issues_html = '-'
 
@@ -1033,8 +1033,7 @@ class ValidatorApp(QMainWindow):
                 html += f"""
                     <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
                         <td style="padding: 10px; color: #666;">{idx}</td>
-                        <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}</td>
-                        <td style="padding: 10px; color: #555;">{ne_type}</td>
+                        <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}<br><span style="font-weight: normal; font-size: 0.85em;">({ne_type})</span></td>
                         <td style="padding: 10px; font-weight: bold; color: {status_color};">{status}</td>
                         <td style="padding: 10px; color: #555;">{error_type}</td>
                         <td style="padding: 10px; color: #555;">{issues_html}</td>
