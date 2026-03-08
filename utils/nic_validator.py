@@ -147,8 +147,8 @@ class NICValidator:
             # 4. 检查网元数据文件夹是否存在
             self._check_ne_folders(result)
 
-            # 5. 检查关键文件
-            self._check_required_files(result)
+            # 5. 检查关键文件 (已禁用 - 与网元级 static_mml 校验重复)
+            # self._check_required_files(result)
 
             # 6. 检查网元级别静态 MML
             self._check_static_mml(result)
@@ -159,7 +159,8 @@ class NICValidator:
             all_unsupported = len(self.ne_instances) > 0 and len(result['unsupported_types']) == len(self.ne_instances)
 
             # Package-level issues only (NE-level issues like missing_files are excluded)
-            if result['collect_range_too_short'] or result['missing_folders'] or result['missing_neinfo'] or all_unsupported:
+            # Use .get() to avoid KeyError when keys don't exist
+            if result.get('collect_range_too_short') or result.get('missing_folders') or result.get('missing_neinfo') or all_unsupported:
                 result['valid'] = False
                 # 标记是否完全不支持的包
                 result['all_unsupported'] = all_unsupported
