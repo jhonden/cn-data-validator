@@ -279,6 +279,19 @@ class ValidatorApp(QMainWindow):
         # 启用 word wrap，让长文本自动换行
         self.table.setWordWrap(True)
 
+        # Set cursor style for clickable "View Details" links
+        self.table.setStyleSheet("""
+            QTableWidget {
+                selection-background-color: #BBDEFB;
+            }
+            QTableWidget::item:hover {
+                background-color: #E3F2FD;
+            }
+            QTableWidget::item:selected {
+                background-color: #BBDEFB;
+            }
+        """)
+
         # Connect row double click event to show details (only for failed/warning packages)
         self.table.itemDoubleClicked.connect(self.on_table_double_clicked)
 
@@ -462,7 +475,7 @@ class ValidatorApp(QMainWindow):
 
             # Only show "View Details" button for failed/warning packages
             if has_issues:
-                detail = '查看详情'
+                detail = 'View Details'
 
             self.all_valid_files.append({
                 'file_info': file_info,
@@ -542,11 +555,16 @@ class ValidatorApp(QMainWindow):
             elif col == 4:
                 item.setForeground(QColor(package_color))
                 item.setFont(QFont("Arial", 9))
-            # Details column (column 6): add tooltip and enable word wrap
+            # Details column (column 6): add tooltip, enable word wrap, and make clickable
             elif col == 6:
                 item.setToolTip(str(item_text))  # Tooltip 显示完整内容
                 # 启用 word wrap
                 item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+
+                # Only apply link style to "View Details" text
+                if str(item_text) == '查看详情':
+                    item.setForeground(QColor('#2196F3'))  # Blue link color
+                    item.setFont(QFont("Arial", 9, QFont.Weight.Underline))  # Underline to look like link
 
             self.table.setItem(row, col, item)
 
