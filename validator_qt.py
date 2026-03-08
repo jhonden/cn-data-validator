@@ -573,7 +573,9 @@ class ValidatorApp(QMainWindow):
                 # Only apply link style to "View Details" text
                 if str(item_text) == 'View Details':
                     item.setForeground(QColor(COLORS['link']))
-                    item.setFont(QFont("Arial", 9, QFont.Weight.Underline))  # Underline to look like link
+                    font = QFont("Arial", 9)
+                    font.setUnderline(True)
+                    item.setFont(font)
 
             self.table.setItem(row, col, item)
 
