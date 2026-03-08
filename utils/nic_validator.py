@@ -158,7 +158,8 @@ class NICValidator:
             # 如果有任何一个网元类型支持，即使有其他不支持的，也算部分有效
             all_unsupported = len(self.ne_instances) > 0 and len(result['unsupported_types']) == len(self.ne_instances)
 
-            if result['collect_range_too_short'] or result['missing_folders'] or result['missing_files'] or all_unsupported:
+            # Package-level issues only (NE-level issues like missing_files are excluded)
+            if result['collect_range_too_short'] or result['missing_folders'] or result['missing_neinfo'] or all_unsupported:
                 result['valid'] = False
                 # 标记是否完全不支持的包
                 result['all_unsupported'] = all_unsupported
