@@ -986,59 +986,75 @@ class ValidatorApp(QMainWindow):
 
         # Generate table rows
         if ne_combined_results:
-            for idx, (ne_key, results) in enumerate(ne_combined_results.items(), 1):
+            row_idx = 0
+            for ne_key, results in ne_combined_results.items():
                 ne_name, ne_type = ne_key
                 static_mml_result = results.get('static_mml')
                 scenario_result = results.get('scenario')
 
-                # Determine overall status and error type
-                status = 'Pass'
-                status_color = '#4CAF50'
-                error_type = '-'
-                issues = []
+                # Collect all errors for this NE
+                errors = []
 
                 # Check static MML result
                 if static_mml_result:
                     static_valid = static_mml_result.get('valid')
                     if static_valid is False:
-                        status = 'Fail'
-                        status_color = '#F44336'
-                        error_type = 'Static MML Missing'
                         missing_paths = static_mml_result.get('missing_paths', [])
                         if missing_paths:
-                            for i, path in enumerate(missing_paths, 1):
-                                issues.append(f'<div style="line-height: 1.5; margin-bottom: 3px;"><span style="color: #F44336;">{i}. Static MML: {path}</span></div>')
+                            for path in missing_paths:
+                                errors.append(('Static MML Missing', f'<span style="color: #F44336;">{path}</span>'))
 
                 # Check scenario result
                 if scenario_result:
                     scenario_valid = scenario_result.get('valid')
                     if scenario_valid is False:
-                        if status == 'Pass':
-                            status = 'Fail'
-                            status_color = '#FF9800'
-                        error_type = error_type if error_type != '-' else 'Scenario Error'
                         scenario_error_msg = scenario_result.get('error')
                         if scenario_error_msg:
-                            issues.append(f'<div style="line-height: 1.5; margin-bottom: 3px;"><span style="color: #FF9800;">Scenario: {scenario_error_msg}</span></div>')
+                            errors.append(('Scenario Error', f'<span style="color: #FF9800;">{scenario_error_msg}</span>'))
 
-                # Format issues column
-                if issues:
-                    issues_html = ''.join(issues)
-                else:
-                    issues_html = '-'
+                # Determine overall status
+                status = 'Pass'
+                status_color = '#4CAF50'
+                if errors:
+                    status = 'Fail'
+                    status_color = '#F44336'
 
-                # Row style
-                row_style = 'background-color: #ffffff;' if idx % 2 == 1 else 'background-color: #fafafa;'
+                # Calculate row count for rowspan
+                num_rows = max(1, len(errors))
 
-                html += f"""
-                    <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
-                        <td style="padding: 10px; color: #666;">{idx}</td>
-                        <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}<br><span style="font-weight: normal; font-size: 0.85em;">({ne_type})</span></td>
-                        <td style="padding: 10px; font-weight: bold; color: {status_color};">{status}</td>
-                        <td style="padding: 10px; color: #555;">{error_type}</td>
-                        <td style="padding: 10px; color: #555;">{issues_html}</td>
-                    </tr>
-                """
+                # For each error type (or one row if no errors)
+                for error_row_num in range(num_rows):
+                    row_style = 'background-color: #ffffff;' if row_idx % 2 == 1 else 'background-color: #fafafa;'
+
+                    # First 3 columns with rowspan
+                    if error_row_num == 0:
+                        first_col = f'<td style="padding: 10px; color: #666;" rowspan="{num_rows}">{row_idx + 1}</td>'
+                        second_col = f'<td style="padding: 10px; color: #555; font-weight: bold;" rowspan="{num_rows}">{ne_name}<br><span style="font-weight: normal; font-size: 0.85em;">({ne_type})</span></td>'
+                        third_col = f'<td style="padding: 10px; font-weight: bold; color: {status_color};" rowspan="{num_rows}">{status}</td>'
+                    else:
+                        first_col = ''
+                        second_col = ''
+                        third_col = ''
+
+                    # Error Type and Issues columns
+                    if errors:
+                        error_type, error_msg = errors[error_row_num]
+                        fourth_col = f'<td style="padding: 10px; color: #555;">{error_type}</td>'
+                        fifth_col = f'<td style="padding: 10px; color: #555;">{error_msg}</td>'
+                    else:
+                        fourth_col = '<td style="padding: 10px; color: #555;">-</td>'
+                        fifth_col = '<td style="padding: 10px; color: #555;">-</td>'
+
+                    html += f"""
+                        <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
+                            {first_col}
+                            {second_col}
+                            {third_col}
+                            {fourth_col}
+                            {fifth_col}
+                        </tr>
+                    """
+                    row_idx += 1
 
             # Add summary row
             total_ne = static_mml_validation.get('total_ne_count', 0) if static_mml_validation else 0
@@ -1051,7 +1067,7 @@ class ValidatorApp(QMainWindow):
 
             html += f"""
                 <tr style="background-color: #F5F5F5; border-top: 2px solid #E3F2FD;">
-                    <td colspan="6" style="padding: 12px; font-weight: bold;">
+                    <td colspan="5" style="padding: 12px; font-weight: bold;">
                         Summary: Total: {total_ne} |
                         <span style="color: #4CAF50;">Pass: {valid_ne}</span> |
                         <span style="color: #FF9800;">Warning: {warning_ne}</span> |
@@ -1063,7 +1079,7 @@ class ValidatorApp(QMainWindow):
         else:
             html += f"""
                 <tr style="background-color: #ffffff;">
-                    <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
+                    <td colspan="5" style="padding: 12px; color: #666; text-align: center;">
                         No NE validation data available
                     </td>
                     </tr>
