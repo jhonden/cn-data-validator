@@ -1019,10 +1019,10 @@ class ValidatorApp(QMainWindow):
             html += f"""
                 <tr style="background-color: #F5F5F5; border-top: 2px solid #E3F2FD;">
                     <td colspan="6" style="padding: 12px; font-weight: bold;">
-                        {self._t('summary')}: {self._t('total')}: {total_ne} |
-                        <span style="color: #4CAF50;">{self._t('pass')}: {valid_ne}</span> |
-                        <span style="color: #FF9800;">{self._t('warning')}: {warning_ne}</span> |
-                        <span style="color: #F44336;">{self._t('fail')}: {invalid_ne}</span>
+                        Summary: Total: {total_ne} |
+                        <span style="color: #4CAF50;">Pass: {valid_ne}</span> |
+                        <span style="color: #FF9800;">Warning: {warning_ne}</span> |
+                        <span style="color: #F44336;">Fail: {invalid_ne}</span>
                     </td>
                 </tr>
             """
