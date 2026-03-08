@@ -80,8 +80,7 @@ class StaticMMLChecker:
             # Check for collection scenario errors
             scenario_result = self._check_collection_scenario(
                 ne_parent_path,
-                ne_instance.ne_type,
-                ne_instance.name
+                ne_instance
             )
             if scenario_result:
                 result['valid'] = False
@@ -106,9 +105,125 @@ class StaticMMLChecker:
             'scenario_errors': scenario_errors if scenario_error_count > 0 else []
         }
 
-    def _check_collection_scenario(self, ne_parent_path: str, ne_type: str, ne_name: str) -> Optional[str]:
+    def _check_collection_scenario(self, ne_parent_path: str, ne_instance) -> Optional[str]:
         """
         Check collection scenario by reading taskinfo.txt
+
+        Args:
+            ne_parent_path: NE data parent folder path
+            ne_instance: NEInstance object
+
+        Returns:
+            Error message if scenario mismatch, None otherwise
+        """
+        if not self.scenario_config:
+            return None
+
+        ne_type = ne_instance.ne_type
+        ne_name = ne_instance.name
+
+        # Special handling for USCDB - check version format first
+        if ne_type == 'USCDB':
+            expected_scenario = self._get_uscdb_expected_scenario(ne_parent_path, ne_instance.instance_id)
+            if expected_scenario is None:
+                return None
+
+            # Read taskinfo.txt to get actual scenario
+            actual_scenario = self._read_scenario_from_taskinfo(ne_parent_path)
+            if actual_scenario is None:
+                return None
+
+            return self._format_scenario_error(ne_type, ne_name, actual_scenario, expected_scenario)
+
+        # For other NE types, use standard logic
+        return self._check_standard_scenario(ne_parent_path, ne_type, ne_name)
+
+    def _get_uscdb_expected_scenario(self, ne_parent_path: str, instance_id: str) -> Optional[str]:
+        """
+        Get expected scenario for USCDB based on version format
+
+        Args:
+            ne_parent_path: NE data parent folder path
+            instance_id: USCDB instance ID
+
+        Returns:
+            Expected scenario name based on version format, None if not found
+        """
+        try:
+            # Read TaskExtValue.xml
+            taskext_path = os.path.join(ne_parent_path, 'taskparam', 'TaskExtValue.xml')
+            if not os.path.exists(taskext_path):
+                return None
+
+            with open(taskext_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Parse selNEInfo attribute (format: "64:V500R023C10SPC110|56:V500R023C10SPC100|...")
+            import re
+            selne_match = re.search(r'selNEInfo="([^"]+)"', content)
+            if not selne_match:
+                return None
+
+            selne_info = selne_match.group(1)
+            ne_entries = selne_info.split('|')
+
+            # Find version for this instance
+            version = None
+            for entry in ne_entries:
+                if ':' in entry:
+                    entry_instance, entry_version = entry.split(':', 1)
+                    if entry_instance == instance_id:
+                        version = entry_version
+                        break
+
+            if version is None:
+                return None
+
+            # Determine version format
+            # VRC format: starts with 'V' followed by letters/numbers (e.g., V500R020C10)
+            # Dotted format: contains dots (e.g., 20.3.2)
+            if version.startswith('V') and re.match(r'^V\d+[A-Za-z]\d+', version):
+                # VRC format - use offline health check scenario
+                return 'Offline health check scenario'
+            elif '.' in version:
+                # Dotted format - use cloud health check scenario
+                return 'Cloud health check scenario'
+            else:
+                # Unknown format - default to offline
+                return 'Offline health check scenario'
+
+        except Exception as e:
+            return None
+
+    def _read_scenario_from_taskinfo(self, ne_parent_path: str) -> Optional[str]:
+        """
+        Read scenario from taskinfo.txt
+
+        Args:
+            ne_parent_path: NE data parent folder path
+
+        Returns:
+            Scenario name, None if not found
+        """
+        taskinfo_path = os.path.join(ne_parent_path, 'taskinfo.txt')
+        if not os.path.exists(taskinfo_path):
+            return None
+
+        try:
+            with open(taskinfo_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.startswith('scenario_group_name='):
+                        # Extract scenario name after '=' and before ';'
+                        scenario_part = line.split('=')[1].split(';')[0]
+                        return scenario_part
+        except Exception:
+            pass
+
+        return None
+
+    def _check_standard_scenario(self, ne_parent_path: str, ne_type: str, ne_name: str) -> Optional[str]:
+        """
+        Check collection scenario for standard NE types (non-USCDB)
 
         Args:
             ne_parent_path: NE data parent folder path
@@ -122,21 +237,14 @@ class StaticMMLChecker:
             return None
 
         # Read taskinfo.txt to get scenario
-        taskinfo_path = os.path.join(ne_parent_path, 'taskinfo.txt')
-        if not os.path.exists(taskinfo_path):
+        actual_scenario = self._read_scenario_from_taskinfo(ne_parent_path)
+        if actual_scenario is None:
             return None
 
-        try:
-            with open(taskinfo_path, 'r', encoding='utf-8') as f:
-                for line in f:
-                    if line.startswith('scenario_group_name='):
-                        # Extract scenario name after '=' and before ';'
-                        scenario_part = line.split('=')[1].split(';')[0]
-                        return self._format_scenario_error(ne_type, ne_name, scenario_part)
-        except Exception as e:
-            return self._format_scenario_error(ne_type, ne_name, f"Error reading taskinfo.txt: {str(e)}")
+        return self._format_scenario_error(ne_type, ne_name, actual_scenario)
 
-    def _format_scenario_error(self, ne_type: str, ne_name: str, actual_scenario: str) -> str:
+    def _format_scenario_error(self, ne_type: str, ne_name: str, actual_scenario: str,
+                               expected_scenario: Optional[str] = None) -> str:
         """
         Format scenario error message with language support
 
@@ -144,16 +252,18 @@ class StaticMMLChecker:
             ne_type: NE type
             ne_name: NE instance name
             actual_scenario: Actual scenario name from taskinfo.txt
+            expected_scenario: Expected scenario name (optional, fetched from config if not provided)
 
         Returns:
-            Formatted error message
+            Formatted error message, None if scenarios match
         """
         # Get language from config (default to English)
         ui_language = self.scenario_config.get('ui_language', 'en')
 
-        # Get expected scenario for this NE type
-        expected_scenario_info = self.scenario_config.get('scenarios', {}).get(ne_type, {})
-        expected_scenario = expected_scenario_info.get('en', '')
+        # Get expected scenario for this NE type if not provided
+        if expected_scenario is None:
+            expected_scenario_info = self.scenario_config.get('scenarios', {}).get(ne_type, {})
+            expected_scenario = expected_scenario_info.get('en', '')
 
         if not expected_scenario:
             return None
