@@ -1009,7 +1009,7 @@ class ValidatorApp(QMainWindow):
             html += f"""
                 <tr style="background-color: #ffffff;">
                     <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
-                        {self._t('no_data_available')}
+                        No static MML validation data available
                     </td>
                     </tr>
                 """
