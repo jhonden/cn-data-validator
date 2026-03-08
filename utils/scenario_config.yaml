@@ -1,34 +1,36 @@
-# Collection Scenario Configuration
 scenarios:
   CSCF:
-    en: "Offline health check scenario"
-    zh: "离线健康检查信息收集场景"
-
+    en: Offline health check scenario
+    zh: 离线健康检查信息收集场景
   ATS:
-    en: "Offline health check scenario"
-    zh: "离线健康检查信息收集场景"
-
+    en: Offline health check scenario
+    zh: 离线健康检查信息收集场景
   CCF:
-    en: "Offline health check scenario"
-    zh: "离线健康检查信息收集场景"
-
+    en: Offline health check scenario
+    zh: 离线健康检查信息收集场景
   SE2900:
-    en: "Offline health check scenario"
-    zh: "离线健康检查信息收集场景"
-
+    en: Offline health check scenario
+    zh: 离线健康检查信息收集场景
   CloudSE2980:
-    en: "Offline health check scenario"
-    zh: "离线健康检查信息收集场景"
-
+    en: Offline health check scenario
+    zh: 离线健康检查信息收集场景
   UNC:
-    en: "Cloud health check scenario"
-    zh: "云巡检场景"
-
+    en: Cloud health check scenario
+    zh: 云巡检场景
   UDG:
-    en: "Cloud health check scenario"
-    zh: "云巡检场景"
-
+    en: Cloud health check scenario
+    zh: 云巡检场景
+  vCG:
+    en: Health check scenario
+    zh: 健康检查场景
+  vUGW:
+    en: Health check scenario
+    zh: 健康检查场景
+  vUSN:
+    en: Health check scenario
+    zh: 健康检查场景
 error_messages:
   scenario_mismatch:
-    en: "Collection scenario error: NE '{ne_name}' ({ne_type}) should use '{expected_scenario}' collection scenario"
-    zh: "网元采集场景错误：网元'{ne_name}'（{ne_type}）应该使用'{expected_scenario}'采集场景"
+    en: 'Collection scenario error: NE ''{ne_name}'' ({ne_type}) should use ''{expected_scenario}''
+      collection scenario'
+    zh: 网元采集场景错误：网元'{ne_name}'（{ne_type}）应该使用'{expected_scenario}'采集场景
