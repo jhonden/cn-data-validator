@@ -118,7 +118,9 @@ class ValidatorApp(QMainWindow):
                 'ne_details_title': 'Network Element Details',
                 'no_package_issues': 'No package-level issues found',
                 'filter_all': 'All',
+                'filter_all_formats': 'All Formats',
                 'filter_status': 'Status',
+                'filter_format': 'Format',
             },
             'zh': {
                 'error_type_static_mml_missing': '静态MML缺失',
@@ -133,7 +135,9 @@ class ValidatorApp(QMainWindow):
                 'ne_details_title': '网元详情',
                 'no_package_issues': '未发现包级问题',
                 'filter_all': '全部',
+                'filter_all_formats': '全部格式',
                 'filter_status': '状态',
+                'filter_format': '格式',
             }
         }
 
@@ -175,23 +179,39 @@ class ValidatorApp(QMainWindow):
 
     def _refresh_ui_text(self):
         """Refresh all UI text based on current language"""
-        # Refresh filter dropdown
+        # Refresh filter dropdowns
         current_status_filter = self.filter_widgets['status'].currentText()
         status_filter_index = self.filter_widgets['status'].currentIndex()
         self.filter_widgets['status'].clear()
+
+        current_format_filter = self.filter_widgets['format'].currentText()
+        format_filter_index = self.filter_widgets['format'].currentIndex()
+        self.filter_widgets['format'].clear()
 
         if self.ui_language == 'zh':
             self.filter_widgets['status'].addItem("全部")
             self.filter_widgets['status'].addItem("通过")
             self.filter_widgets['status'].addItem("不通过")
+            self.filter_widgets['format'].addItem("全部格式")
+            self.filter_widgets['format'].addItem("ZIP")
+            self.filter_widgets['format'].addItem("TAR.GZ")
+            self.filter_widgets['format'].addItem("TAR")
+            self.filter_widgets['format'].addItem("XLSX")
         else:
             self.filter_widgets['status'].addItem("All")
             self.filter_widgets['status'].addItem("Pass")
             self.filter_widgets['status'].addItem("Fail")
+            self.filter_widgets['format'].addItem("All Formats")
+            self.filter_widgets['format'].addItem("ZIP")
+            self.filter_widgets['format'].addItem("TAR.GZ")
+            self.filter_widgets['format'].addItem("TAR")
+            self.filter_widgets['format'].addItem("XLSX")
 
         # Restore previous selection if possible
         if status_filter_index < self.filter_widgets['status'].count():
             self.filter_widgets['status'].setCurrentIndex(status_filter_index)
+        if format_filter_index < self.filter_widgets['format'].count():
+            self.filter_widgets['format'].setCurrentIndex(format_filter_index)
 
         # If there are results, refresh them
         if self.table.rowCount() > 0:
@@ -319,14 +339,14 @@ class ValidatorApp(QMainWindow):
 
         # Format filter (ComboBox)
         self.filter_widgets['format'] = QComboBox()
-        self.filter_widgets['format'].addItem("All Formats")
+        self.filter_widgets['format'].addItem(self._t('filter_all_formats'))
         self.filter_widgets['format'].addItem("ZIP")
         self.filter_widgets['format'].addItem("TAR.GZ")
         self.filter_widgets['format'].addItem("TAR")
         self.filter_widgets['format'].addItem("XLSX")
         self.filter_widgets['format'].setFixedWidth(120)
         self.filter_widgets['format'].currentTextChanged.connect(self.apply_filters)
-        filter_layout.addWidget(QLabel("Format:"))
+        filter_layout.addWidget(QLabel(f"{self._t('filter_format')}:"))
         filter_layout.addWidget(self.filter_widgets['format'])
 
         # Status filter (ComboBox)
@@ -774,11 +794,13 @@ class ValidatorApp(QMainWindow):
             return False
 
         # Format filter
-        if format_filter != "All Formats" and file_data['format'] != format_filter:
+        all_formats_text = self._t('filter_all_formats') if self.ui_language == 'en' else '全部格式'
+        if format_filter != all_formats_text and file_data['format'] != format_filter:
             return False
 
         # Status filter
-        if status_filter != "All" and file_data['status'] != status_filter:
+        all_text = self._t('filter_all') if self.ui_language == 'en' else '全部'
+        if status_filter != all_text and file_data['status'] != status_filter:
             return False
 
         # Details filter (文本模糊匹配)
