@@ -121,7 +121,7 @@ class ValidatorApp(QMainWindow):
         control_layout = QHBoxLayout()
 
         self.dir_label = QLabel("Select Package Directory:")
-        self.dir_label.setFont(QFont('Arial', FONT_SIZE['small'], FONT_WEIGHT['normal']))
+        self.dir_label.setFont(QFont(FONTS['default'], FONT_SIZE['small'], FONT_WEIGHT['normal']))
         control_layout.addWidget(self.dir_label)
 
         self.dir_path_label = QLabel("")
