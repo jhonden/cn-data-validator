@@ -487,6 +487,15 @@ class ValidatorApp(QMainWindow):
                                 status = 'Fail'  # Changed from Warning to Fail
                                 status_color = COLORS['error']
 
+                        # Check scenario validation issues
+                        scenario_validation = nic_validation.get('scenario_validation')
+                        if scenario_validation:
+                            invalid_scenario = scenario_validation.get('invalid_ne_count', 0)
+                            if invalid_scenario > 0:
+                                has_issues = True
+                                status = 'Fail'
+                                status_color = COLORS['error']
+
                 # Only show "View Details" button for failed packages
                 if has_issues:
                     detail = 'View Details'
@@ -948,93 +957,118 @@ class ValidatorApp(QMainWindow):
         """
 
         static_mml_validation = nic_validation.get('static_mml_validation')
+        scenario_validation = nic_validation.get('scenario_validation')
 
+        # Build a dictionary to combine results from both validators
+        ne_combined_results = {}
+
+        # Process static MML results
         if static_mml_validation:
-            total_ne = static_mml_validation.get('total_ne_count', 0)
-            valid_ne = static_mml_validation.get('valid_ne_count', 0)
-            invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
-            warning_ne = static_mml_validation.get('warning_ne_count', 0)
-
             ne_results = static_mml_validation.get('ne_results', [])
+            for ne_result in ne_results:
+                ne_key = (ne_result.get('ne_name'), ne_result.get('ne_type'))
+                ne_combined_results[ne_key] = {
+                    'static_mml': ne_result,
+                    'scenario': None
+                }
 
-            if ne_results:
-                for idx, ne_result in enumerate(ne_results, 1):
-                    ne_valid = ne_result.get('valid')
-                    ne_name = ne_result.get('ne_name', '')
-                    ne_type = ne_result.get('ne_type', '')
+        # Process scenario results
+        if scenario_validation:
+            ne_results = scenario_validation.get('ne_results', [])
+            for ne_result in ne_results:
+                ne_key = (ne_result.get('ne_name'), ne_result.get('ne_type'))
+                if ne_key in ne_combined_results:
+                    ne_combined_results[ne_key]['scenario'] = ne_result
+                else:
+                    ne_combined_results[ne_key] = {
+                        'static_mml': None,
+                        'scenario': ne_result
+                    }
 
-                    # Status
-                    if ne_valid is True:
-                        status = 'Pass'
-                        status_color = '#4CAF50'
-                        error_type = '-'
-                    elif ne_valid is False:
+        # Generate table rows
+        if ne_combined_results:
+            for idx, (ne_key, results) in enumerate(ne_combined_results.items(), 1):
+                ne_name, ne_type = ne_key
+                static_mml_result = results.get('static_mml')
+                scenario_result = results.get('scenario')
+
+                # Determine overall status and error type
+                status = 'Pass'
+                status_color = '#4CAF50'
+                error_type = '-'
+                issues = []
+
+                # Check static MML result
+                if static_mml_result:
+                    static_valid = static_mml_result.get('valid')
+                    if static_valid is False:
                         status = 'Fail'
                         status_color = '#F44336'
                         error_type = 'Static MML Missing'
-                    else:
-                        status = 'Not Required'
-                        status_color = '#FF9800'
-                        error_type = '-'
+                        missing_paths = static_mml_result.get('missing_paths', [])
+                        if missing_paths:
+                            issues.append(f'<span style="color: #F44336;">Static MML: {", ".join(missing_paths)}</span>')
 
-                    # Issues
-                    # Check for Static MML Missing
-                    static_mml_missing = ne_result.get('missing_paths', [])
-                    if static_mml_missing:
-                        issues = f'<span style="color: #F44336;">{", ".join(static_mml_missing)}</span>'
-                    else:
-                        issues = '-'
+                # Check scenario result
+                if scenario_result:
+                    scenario_valid = scenario_result.get('valid')
+                    if scenario_valid is False:
+                        if status == 'Pass':
+                            status = 'Fail'
+                            status_color = '#FF9800'
+                        error_type = error_type if error_type != '-' else 'Scenario Error'
+                        scenario_error_msg = scenario_result.get('error')
+                        if scenario_error_msg:
+                            issues.append(f'<span style="color: #FF9800;">Scenario: {scenario_error_msg}</span>')
 
-                    # Check for scenario error
-                    scenario_error = ne_result.get('scenario_error', None)
-                    if scenario_error:
-                        if issues == '-':
-                            issues = f'<span style="color: #FF9800;">{scenario_error}</span>'
-                        else:
-                            issues = f'<span style="color: #F44336;">{", ".join(static_mml_missing)}; <span style="color: #FF9800;">{scenario_error}</span></span>'
+                # Format issues column
+                if issues:
+                    issues_html = '<br>'.join(issues)
+                else:
+                    issues_html = '-'
 
-                    # Row style
-                    row_style = 'background-color: #ffffff;' if idx % 2 == 1 else 'background-color: #fafafa;'
+                # Row style
+                row_style = 'background-color: #ffffff;' if idx % 2 == 1 else 'background-color: #fafafa;'
 
-                    html += f"""
-                        <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
-                            <td style="padding: 10px; color: #666;">{idx}</td>
-                            <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}</td>
-                            <td style="padding: 10px; color: #555;">{ne_type}</td>
-                            <td style="padding: 10px; font-weight: bold; color: {status_color};">{status}</td>
-                            <td style="padding: 10px; color: #555;">{error_type}</td>
-                            <td style="padding: 10px; color: #555;">{issues}</td>
-                        </tr>
-                    """
-            else:
                 html += f"""
-                    <tr style="background-color: #ffffff;">
-                        <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
-                            No NE instances found
-                        </td>
-                    </tr>
-                """
-        else:
-            html += f"""
-                <tr style="background-color: #ffffff;">
-                    <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
-                        No static MML validation data available
-                    </td>
+                    <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
+                        <td style="padding: 10px; color: #666;">{idx}</td>
+                        <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}</td>
+                        <td style="padding: 10px; color: #555;">{ne_type}</td>
+                        <td style="padding: 10px; font-weight: bold; color: {status_color};">{status}</td>
+                        <td style="padding: 10px; color: #555;">{error_type}</td>
+                        <td style="padding: 10px; color: #555;">{issues_html}</td>
                     </tr>
                 """
 
-        # Add summary row
-        if static_mml_validation:
+            # Add summary row
+            total_ne = static_mml_validation.get('total_ne_count', 0) if static_mml_validation else 0
+            valid_ne = static_mml_validation.get('valid_ne_count', 0) if static_mml_validation else 0
+            invalid_ne = static_mml_validation.get('invalid_ne_count', 0) if static_mml_validation else 0
+            warning_ne = static_mml_validation.get('warning_ne_count', 0) if static_mml_validation else 0
+
+            # Add scenario validation count
+            scenario_invalid = scenario_validation.get('invalid_ne_count', 0) if scenario_validation else 0
+
             html += f"""
                 <tr style="background-color: #F5F5F5; border-top: 2px solid #E3F2FD;">
                     <td colspan="6" style="padding: 12px; font-weight: bold;">
                         Summary: Total: {total_ne} |
                         <span style="color: #4CAF50;">Pass: {valid_ne}</span> |
                         <span style="color: #FF9800;">Warning: {warning_ne}</span> |
-                        <span style="color: #F44336;">Fail: {invalid_ne}</span>
+                        <span style="color: #F44336;">Static MML Fail: {invalid_ne}</span> |
+                        <span style="color: #FF9800;">Scenario Fail: {scenario_invalid}</span>
                     </td>
                 </tr>
             """
+        else:
+            html += f"""
+                <tr style="background-color: #ffffff;">
+                    <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
+                        No NE validation data available
+                    </td>
+                    </tr>
+                """
 
         html += """
             </table>

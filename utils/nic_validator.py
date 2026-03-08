@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ET
 
 # Import static MML checker
 from .static_mml_checker import StaticMMLChecker
+from .scenario_checker import ScenarioChecker
 
 
 class NEInstance:
@@ -87,9 +88,11 @@ class NICValidator:
         self.ne_instances: List[NEInstance] = []
         self.neinfo_path = None
         self.temp_dir = None
-        # Initialize static MML checker
+        # Initialize checkers
         config_path = os.path.join(os.path.dirname(__file__), 'static_mml_config.yaml')
         self.static_mml_checker = StaticMMLChecker(config_path)
+        scenario_config_path = os.path.join(os.path.dirname(__file__), 'scenario_config.yaml')
+        self.scenario_checker = ScenarioChecker(scenario_config_path)
 
     def validate(self) -> Dict:
         """
@@ -300,7 +303,7 @@ class NICValidator:
                 }
 
     def _check_static_mml(self, result: Dict):
-        """Check NE-level static MML configuration"""
+        """Check NE-level static MML configuration and collection scenarios"""
         try:
             # Get NE folder path (directory containing neinfo.txt)
             ne_folder_path = os.path.dirname(self.neinfo_path)
@@ -310,11 +313,17 @@ class NICValidator:
                 ne_folder_path,
                 self.ne_instances
             )
-
             result['static_mml_validation'] = static_mml_result
 
+            # Call scenario checker to validate collection scenarios
+            scenario_result = self.scenario_checker.check_package(
+                ne_folder_path,
+                self.ne_instances
+            )
+            result['scenario_validation'] = scenario_result
+
         except Exception as e:
-            result['warnings'].append(f"Error checking static MML: {str(e)}")
+            result['warnings'].append(f"Error checking NE validations: {str(e)}")
 
     def _check_collect_range(self, result: Dict):
         """检查采集时间范围是否大于 24 小时"""
