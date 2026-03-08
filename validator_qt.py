@@ -102,120 +102,7 @@ class ValidatorApp(QMainWindow):
         self.all_invalid_files = []  # 存储所有无效文件数据
         self.filter_widgets = {}  # 存储筛选控件
 
-        # Language and translation
-        self.ui_language = self._detect_language()
-        self.translations = {
-            'en': {
-                'error_type_static_mml_missing': 'Static MML Missing',
-                'pass': 'Pass',
-                'fail': 'Fail',
-                'not_required': 'Not Required',
-                'warning': 'Warning',
-                'summary': 'Summary',
-                'total': 'Total',
-                'no_ne_found': 'No NE instances found',
-                'no_data_available': 'No static MML validation data available',
-                'ne_details_title': 'Network Element Details',
-                'no_package_issues': 'No package-level issues found',
-                'filter_all': 'All',
-                'filter_all_formats': 'All Formats',
-                'filter_status': 'Status',
-                'filter_format': 'Format',
-            },
-            'zh': {
-                'error_type_static_mml_missing': '静态MML缺失',
-                'pass': '通过',
-                'fail': '不通过',
-                'not_required': '不要求',
-                'warning': '警告',
-                'summary': '汇总',
-                'total': '总计',
-                'no_ne_found': '未找到网元实例',
-                'no_data_available': '无静态MML校验数据',
-                'ne_details_title': '网元详情',
-                'no_package_issues': '未发现包级问题',
-                'filter_all': '全部',
-                'filter_all_formats': '全部格式',
-                'filter_status': '状态',
-                'filter_format': '格式',
-            }
-        }
-
         self.init_ui()
-
-    def _detect_language(self):
-        """Detect system language"""
-        import locale
-        system_locale = locale.getdefaultlocale()[0]
-        # Default to English if locale is not Chinese
-        if system_locale and ('zh' in system_locale.lower() or 'cn' in system_locale.lower()):
-            return 'zh'
-        return 'en'
-
-    def _t(self, key: str) -> str:
-        """Get translated text"""
-        return self.translations[self.ui_language].get(key, key)
-
-    def _get_lang_btn_text(self) -> str:
-        """Get language switch button text"""
-        if self.ui_language == 'en':
-            return '中文'
-        else:
-            return 'EN'
-
-    def toggle_language(self):
-        """Toggle between English and Chinese"""
-        # Switch language
-        if self.ui_language == 'en':
-            self.ui_language = 'zh'
-        else:
-            self.ui_language = 'en'
-
-        # Update button text
-        self.lang_btn.setText(self._get_lang_btn_text())
-
-        # Refresh table headers and data if available
-        self._refresh_ui_text()
-
-    def _refresh_ui_text(self):
-        """Refresh all UI text based on current language"""
-        # Refresh filter dropdowns
-        current_status_filter = self.filter_widgets['status'].currentText()
-        status_filter_index = self.filter_widgets['status'].currentIndex()
-        self.filter_widgets['status'].clear()
-
-        current_format_filter = self.filter_widgets['format'].currentText()
-        format_filter_index = self.filter_widgets['format'].currentIndex()
-        self.filter_widgets['format'].clear()
-
-        if self.ui_language == 'zh':
-            self.filter_widgets['status'].addItem("全部")
-            self.filter_widgets['status'].addItem("通过")
-            self.filter_widgets['status'].addItem("不通过")
-            self.filter_widgets['format'].addItem("全部格式")
-            self.filter_widgets['format'].addItem("ZIP")
-            self.filter_widgets['format'].addItem("TAR.GZ")
-            self.filter_widgets['format'].addItem("TAR")
-            self.filter_widgets['format'].addItem("XLSX")
-        else:
-            self.filter_widgets['status'].addItem("All")
-            self.filter_widgets['status'].addItem("Pass")
-            self.filter_widgets['status'].addItem("Fail")
-            self.filter_widgets['format'].addItem("All Formats")
-            self.filter_widgets['format'].addItem("ZIP")
-            self.filter_widgets['format'].addItem("TAR.GZ")
-            self.filter_widgets['format'].addItem("TAR")
-            self.filter_widgets['format'].addItem("XLSX")
-
-        # Restore previous selection if possible
-        if status_filter_index < self.filter_widgets['status'].count():
-            self.filter_widgets['status'].setCurrentIndex(status_filter_index)
-        if format_filter_index < self.filter_widgets['format'].count():
-            self.filter_widgets['format'].setCurrentIndex(format_filter_index)
-
-        # If there are results, refresh them
-        if self.table.rowCount() > 0:
-            self.apply_filters()
 
     def init_ui(self):
         """Initialize UI"""
@@ -292,25 +179,6 @@ class ValidatorApp(QMainWindow):
         self.progress_bar.setVisible(False)
         control_layout.addWidget(self.progress_bar)
 
-        # Language switch button
-        self.lang_btn = QPushButton(self._get_lang_btn_text())
-        self.lang_btn.setFixedWidth(SIZES['button_medium'])
-        self.lang_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS['info']};
-                color: {COLORS['text_primary']};
-                border: 1px solid {COLORS['border']};
-                padding: {SPACING['small']}px {SPACING['medium']}px;
-                border-radius: {BORDER_RADIUS['tiny']}px;
-                font-weight: {FONT_WEIGHT['bold']};
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS['surface_hover']};
-            }}
-        """)
-        self.lang_btn.clicked.connect(self.toggle_language)
-        control_layout.addWidget(self.lang_btn)
-
         control_layout.addStretch()
         layout.addLayout(control_layout)
 
@@ -339,24 +207,24 @@ class ValidatorApp(QMainWindow):
 
         # Format filter (ComboBox)
         self.filter_widgets['format'] = QComboBox()
-        self.filter_widgets['format'].addItem(self._t('filter_all_formats'))
+        self.filter_widgets['format'].addItem("All Formats")
         self.filter_widgets['format'].addItem("ZIP")
         self.filter_widgets['format'].addItem("TAR.GZ")
         self.filter_widgets['format'].addItem("TAR")
         self.filter_widgets['format'].addItem("XLSX")
         self.filter_widgets['format'].setFixedWidth(120)
         self.filter_widgets['format'].currentTextChanged.connect(self.apply_filters)
-        filter_layout.addWidget(QLabel(f"{self._t('filter_format')}:"))
+        filter_layout.addWidget(QLabel("Format:"))
         filter_layout.addWidget(self.filter_widgets['format'])
 
         # Status filter (ComboBox)
         self.filter_widgets['status'] = QComboBox()
-        self.filter_widgets['status'].addItem(self._t('filter_all'))
-        self.filter_widgets['status'].addItem(self._t('pass'))
-        self.filter_widgets['status'].addItem(self._t('fail'))
+        self.filter_widgets['status'].addItem("All")
+        self.filter_widgets['status'].addItem("Pass")
+        self.filter_widgets['status'].addItem("Fail")
         self.filter_widgets['status'].setFixedWidth(100)
         self.filter_widgets['status'].currentTextChanged.connect(self.apply_filters)
-        filter_layout.addWidget(QLabel(f"{self._t('filter_status')}:"))
+        filter_layout.addWidget(QLabel("Status:"))
         filter_layout.addWidget(self.filter_widgets['status'])
 
         # Details filter
@@ -794,13 +662,11 @@ class ValidatorApp(QMainWindow):
             return False
 
         # Format filter
-        all_formats_text = self._t('filter_all_formats') if self.ui_language == 'en' else '全部格式'
-        if format_filter != all_formats_text and file_data['format'] != format_filter:
+        if format_filter != "All Formats" and file_data['format'] != format_filter:
             return False
 
         # Status filter
-        all_text = self._t('filter_all') if self.ui_language == 'en' else '全部'
-        if status_filter != all_text and file_data['status'] != status_filter:
+        if status_filter != "All" and file_data['status'] != status_filter:
             return False
 
         # Details filter (文本模糊匹配)
@@ -1047,7 +913,7 @@ class ValidatorApp(QMainWindow):
             html += f"""
                 <tr style="background-color: #ffffff;">
                     <td colspan="2" style="padding: 12px; color: #4CAF50; font-weight: bold; text-align: center;">
-                        ✓ {self._t('no_package_issues')}
+                        ✓ No package-level issues found
                     </td>
                 </tr>
             """
@@ -1065,10 +931,10 @@ class ValidatorApp(QMainWindow):
 
     def _get_ne_issues_table_html(self, nic_validation):
         """Generate QLabel with NE-level issues table"""
-        html = f"""
+        html = """
         <div style="border: 2px solid #E3F2FD; border-radius: 6px; overflow: hidden;">
             <div style="background-color: #E3F2FD; padding: 12px; font-weight: bold; color: #1976D2;">
-                {self._t('ne_details_title')}
+                Network Element Details
             </div>
             <table style="width: 100%; border-collapse: collapse; margin: 12px;">
                 <tr style="background-color: #f9f9f9; border-bottom: 2px solid #E3F2FD;">
@@ -1099,15 +965,15 @@ class ValidatorApp(QMainWindow):
 
                     # Status
                     if ne_valid is True:
-                        status = self._t('pass')
+                        status = 'Pass'
                         status_color = '#4CAF50'
                         error_type = '-'
                     elif ne_valid is False:
-                        status = self._t('fail')
+                        status = 'Fail'
                         status_color = '#F44336'
-                        error_type = self._t('error_type_static_mml_missing')
+                        error_type = 'Static MML Missing'
                     else:
-                        status = self._t('not_required')
+                        status = 'Not Required'
                         status_color = '#FF9800'
                         error_type = '-'
 
