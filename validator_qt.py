@@ -117,6 +117,8 @@ class ValidatorApp(QMainWindow):
                 'no_data_available': 'No static MML validation data available',
                 'ne_details_title': 'Network Element Details',
                 'no_package_issues': 'No package-level issues found',
+                'filter_all': 'All',
+                'filter_status': 'Status',
             },
             'zh': {
                 'error_type_static_mml_missing': '静态MML缺失',
@@ -130,6 +132,8 @@ class ValidatorApp(QMainWindow):
                 'no_data_available': '无静态MML校验数据',
                 'ne_details_title': '网元详情',
                 'no_package_issues': '未发现包级问题',
+                'filter_all': '全部',
+                'filter_status': '状态',
             }
         }
 
@@ -147,6 +151,51 @@ class ValidatorApp(QMainWindow):
     def _t(self, key: str) -> str:
         """Get translated text"""
         return self.translations[self.ui_language].get(key, key)
+
+    def _get_lang_btn_text(self) -> str:
+        """Get language switch button text"""
+        if self.ui_language == 'en':
+            return '中文'
+        else:
+            return 'EN'
+
+    def toggle_language(self):
+        """Toggle between English and Chinese"""
+        # Switch language
+        if self.ui_language == 'en':
+            self.ui_language = 'zh'
+        else:
+            self.ui_language = 'en'
+
+        # Update button text
+        self.lang_btn.setText(self._get_lang_btn_text())
+
+        # Refresh table headers and data if available
+        self._refresh_ui_text()
+
+    def _refresh_ui_text(self):
+        """Refresh all UI text based on current language"""
+        # Refresh filter dropdown
+        current_status_filter = self.filter_widgets['status'].currentText()
+        status_filter_index = self.filter_widgets['status'].currentIndex()
+        self.filter_widgets['status'].clear()
+
+        if self.ui_language == 'zh':
+            self.filter_widgets['status'].addItem("全部")
+            self.filter_widgets['status'].addItem("通过")
+            self.filter_widgets['status'].addItem("不通过")
+        else:
+            self.filter_widgets['status'].addItem("All")
+            self.filter_widgets['status'].addItem("Pass")
+            self.filter_widgets['status'].addItem("Fail")
+
+        # Restore previous selection if possible
+        if status_filter_index < self.filter_widgets['status'].count():
+            self.filter_widgets['status'].setCurrentIndex(status_filter_index)
+
+        # If there are results, refresh them
+        if self.table.rowCount() > 0:
+            self.apply_filters()
 
     def init_ui(self):
         """Initialize UI"""
@@ -223,6 +272,25 @@ class ValidatorApp(QMainWindow):
         self.progress_bar.setVisible(False)
         control_layout.addWidget(self.progress_bar)
 
+        # Language switch button
+        self.lang_btn = QPushButton(self._get_lang_btn_text())
+        self.lang_btn.setFixedWidth(SIZES['button_medium'])
+        self.lang_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['info']};
+                color: {COLORS['text_primary']};
+                border: 1px solid {COLORS['border']};
+                padding: {SPACING['small']}px {SPACING['medium']}px;
+                border-radius: {BORDER_RADIUS['tiny']}px;
+                font-weight: {FONT_WEIGHT['bold']};
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS['surface_hover']};
+            }}
+        """)
+        self.lang_btn.clicked.connect(self.toggle_language)
+        control_layout.addWidget(self.lang_btn)
+
         control_layout.addStretch()
         layout.addLayout(control_layout)
 
@@ -263,12 +331,12 @@ class ValidatorApp(QMainWindow):
 
         # Status filter (ComboBox)
         self.filter_widgets['status'] = QComboBox()
-        self.filter_widgets['status'].addItem("All")
-        self.filter_widgets['status'].addItem("Pass")
-        self.filter_widgets['status'].addItem("Fail")
+        self.filter_widgets['status'].addItem(self._t('filter_all'))
+        self.filter_widgets['status'].addItem(self._t('pass'))
+        self.filter_widgets['status'].addItem(self._t('fail'))
         self.filter_widgets['status'].setFixedWidth(100)
         self.filter_widgets['status'].currentTextChanged.connect(self.apply_filters)
-        filter_layout.addWidget(QLabel("Status:"))
+        filter_layout.addWidget(QLabel(f"{self._t('filter_status')}:"))
         filter_layout.addWidget(self.filter_widgets['status'])
 
         # Details filter
