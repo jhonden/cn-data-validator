@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QFileDialog, QTableWidget, QTableWidgetItem,
     QHeaderView, QMessageBox, QProgressBar, QStatusBar, QFrame,
-    QLineEdit, QComboBox, QSplitter, QScrollArea, QTextEdit
+    QLineEdit, QComboBox, QDialog
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
@@ -99,10 +99,6 @@ class ValidatorApp(QMainWindow):
         self.all_valid_files = []  # 存储所有有效文件数据
         self.all_invalid_files = []  # 存储所有无效文件数据
         self.filter_widgets = {}  # 存储筛选控件
-
-        # Details panel
-        self.details_panel = None
-        self.details_text = None
 
         self.init_ui()
 
@@ -283,42 +279,10 @@ class ValidatorApp(QMainWindow):
         # 启用 word wrap，让长文本自动换行
         self.table.setWordWrap(True)
 
-        # Connect row click event to show details
-        self.table.itemSelectionChanged.connect(self.on_table_selection_changed)
+        # Connect row double click event to show details (only for failed/warning packages)
+        self.table.itemDoubleClicked.connect(self.on_table_double_clicked)
 
-        # Create details panel
-        self.details_panel = QWidget()
-        details_layout = QVBoxLayout()
-        details_layout.setContentsMargins(0, 0, 0, 0)
-
-        # Details title
-        details_title = QLabel("Package Details")
-        details_title.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        details_title.setStyleSheet("background-color: #E3F2FD; padding: 8px; color: #1976D2;")
-        details_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        details_layout.addWidget(details_title)
-
-        # Details content area
-        self.details_text = QTextEdit()
-        self.details_text.setReadOnly(True)
-        self.details_text.setHtml("""
-            <div style="padding: 16px; color: #666;">
-                <p>Click a table row to view details</p>
-            </div>
-        """)
-        details_layout.addWidget(self.details_text)
-
-        self.details_panel.setLayout(details_layout)
-        self.details_panel.setMinimumWidth(400)
-
-        # Create splitter for table and details panel
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.addWidget(self.table)
-        splitter.addWidget(self.details_panel)
-        splitter.setStretchFactor(0, 2)  # Table takes 2/3 of space
-        splitter.setStretchFactor(1, 1)  # Details panel takes 1/3 of space
-
-        layout.addWidget(splitter)
+        layout.addWidget(self.table)
 
         # Bottom button area
         button_layout = QHBoxLayout()
@@ -811,21 +775,10 @@ class ValidatorApp(QMainWindow):
                     f.write(f"Details: {detail}\n")
                 f.write("\n")
 
-    def on_table_selection_changed(self):
-        """Handle table selection change to show details"""
-        selected_items = self.table.selectedItems()
-
-        if not selected_items:
-            # No selection - show default message
-            self.details_text.setHtml("""
-                <div style="padding: 16px; color: #666;">
-                    <p>Click a table row to view details</p>
-                </div>
-            """)
-            return
-
-        # Get selected row (first selected item's row)
-        row = self.table.row(selected_items[0])
+    def on_table_double_clicked(self, item):
+        """Handle table double click to show details dialog (only for failed/warning packages)"""
+        # Get row
+        row = self.table.row(item)
         file_name = self.table.item(row, 0).text()
 
         # Find the corresponding file data
@@ -835,76 +788,118 @@ class ValidatorApp(QMainWindow):
                 file_data = data
                 break
 
-        if file_data:
-            self.show_package_details(file_data)
+        if not file_data:
+            return
 
-    def show_package_details(self, file_data):
-        """Show package details in details panel"""
-        package_type = file_data.get('package_type', 'Unknown')
+        # Check status - only show details for failed/warning packages
+        status = file_data.get('status', '')
+        if status == 'Valid':
+            # Valid package - no details needed
+            return
+
+        # Show details dialog for failed/warning packages
+        self.show_details_dialog(file_data)
+
+    def show_details_dialog(self, file_data):
+        """Show details dialog for failed/warning packages"""
+        # Create dialog
+        from PyQt6.QtWidgets import QDialog
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Validation Details - {file_data.get('name', '')}")
+        dialog.setMinimumSize(950, 700)
+        dialog.setStyleSheet("""
+            QDialog {
+                background-color: #f5f5f5;
+            }
+        """)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
+
+        # Package basic info
         file_info = file_data.get('file_info', {})
+        package_type = file_data.get('package_type', 'Unknown')
 
-        # Start building HTML content
-        html = """
-        <div style="padding: 16px;">
-            <h3 style="margin-top: 0; color: #2196F3;">Package Information</h3>
-            <table style="border-collapse: collapse; width: 100%;">
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 8px; font-weight: bold; color: #666;">Filename:</td>
-                    <td style="padding: 8px;">{filename}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 8px; font-weight: bold; color: #666;">Path:</td>
-                    <td style="padding: 8px;">{path}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 8px; font-weight: bold; color: #666;">Size:</td>
-                    <td style="padding: 8px;">{size}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 8px; font-weight: bold; color: #666;">Format:</td>
-                    <td style="padding: 8px;">{format}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 8px; font-weight: bold; color: #666;">Package Type:</td>
-                    <td style="padding: 8px; color: #2196F3; font-weight: bold;">{package_type}</td>
+        info_html = f"""
+        <div style="background-color: #E3F2FD; padding: 12px; border-radius: 6px;">
+            <h3 style="margin: 0 0 12px 0; color: #1976D2;">{file_data.get('name', '')}</h3>
+            <table style="border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 6px 12px 6px 0; color: #555;"><strong>Path:</strong> {file_data.get('path', '')}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; font-weight: bold; color: #666;">Status:</td>
-                    <td style="padding: 8px; font-weight: bold; color: {status_color};">{status}</td>
+                    <td style="padding: 6px 12px 6px 0; color: #555;"><strong>Size:</strong> {file_data.get('size', '')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 12px 12px 0; color: #555;"><strong>Package Type:</strong> <span style="color: #2196F3; font-weight: bold;">{package_type}</span></td>
                 </tr>
             </table>
         </div>
-        """.format(
-            filename=file_data.get('name', ''),
-            path=file_data.get('path', ''),
-            size=file_data.get('size', ''),
-            format=file_data.get('format', ''),
-            package_type=package_type,
-            status=file_data.get('status', ''),
-            status_color=file_data.get('status_color', '#666')
-        )
+        """
 
-        # Add package-level issues for NIC packages
+        info_label = QLabel()
+        info_label.setTextFormat(Qt.TextFormat.RichText)
+        info_label.setWordWrap(True)
+        info_label.setText(info_html)
+        layout.addWidget(info_label)
+
+        # Add package-level and NE-level issues for NIC packages
         if package_type == 'NIC Package':
             nic_validation = file_info.get('nic_validation')
             if nic_validation:
-                issues_html = self._get_package_issues_html(nic_validation)
-                html += issues_html
+                # Package-level issues table
+                package_issues_html = self._get_package_issues_table_html(nic_validation)
+                layout.addWidget(package_issues_html)
 
-                # Add NE-level details
-                ne_html = self._get_ne_details_html(nic_validation)
-                html += ne_html
+                # NE-level issues table
+                ne_issues_html = self._get_ne_issues_table_html(nic_validation)
+                layout.addWidget(ne_issues_html)
 
-        self.details_text.setHtml(html)
+        # Close button
+        button_layout = QVBoxLayout()
+        button_layout.setContentsMargins(0, 20, 0, 0)
 
-    def _get_package_issues_html(self, nic_validation):
-        """Generate HTML for package-level issues"""
+        close_btn = QPushButton("Close")
+        close_btn.setFixedWidth(120)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border: none;
+                padding: 10px 24px;
+                border-radius: 6px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+            QPushButton:pressed {
+                background-color: #1565C0;
+            }
+        """)
+        close_btn.clicked.connect(dialog.accept)
+        button_layout.addWidget(close_btn)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+
+        dialog.setLayout(layout)
+        dialog.exec()
+
+    def _get_package_issues_table_html(self, nic_validation):
+        """Generate QLabel with package-level issues table"""
         html = """
-        <div style="margin-top: 20px; border: 2px solid #FFCDD2; border-radius: 5px; overflow: hidden;">
-            <div style="background-color: #FFEBEE; padding: 10px; font-weight: bold; color: #C62828;">
+        <div style="border: 2px solid #FFCDD2; border-radius: 6px; overflow: hidden;">
+            <div style="background-color: #FFEBEE; padding: 12px; font-weight: bold; color: #C62828;">
                 Package Level Issues
             </div>
-            <div style="padding: 12px; color: #555;">
+            <table style="width: 100%; border-collapse: collapse; margin: 12px;">
+                <tr style="background-color: #f9f9f9; border-bottom: 2px solid #FFCDD2;">
+                    <th style="padding: 10px; text-align: left; color: #555;">Type</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">Description</th>
+                </tr>
         """
 
         issues = []
@@ -912,55 +907,84 @@ class ValidatorApp(QMainWindow):
         # Check collect range
         if nic_validation.get('collect_range_too_short'):
             hours = nic_validation.get('collect_range_hours', 0)
-            issues.append(f"⚠️ Collection time range is too short ({hours:.2f}h < 24h)")
+            issues.append(('Warning', f'Collection time range is too short ({hours:.2f}h < 24h)'))
 
         # Check anonymous mode
         if nic_validation.get('anonymous_mode_invalid'):
-            issues.append("⚠️ Collected in anonymous mode")
+            issues.append(('Warning', 'Collected in anonymous mode'))
 
         # Check missing neinfo
         if nic_validation.get('missing_neinfo'):
-            issues.append("❌ Missing required file neinfo.txt")
+            issues.append(('Error', 'Missing required file neinfo.txt'))
 
         # Check missing folders
         missing_folders = nic_validation.get('missing_folders', [])
         if missing_folders:
-            issues.append(f"⚠️ Missing {len(missing_folders)} NE data folders")
+            issues.append(('Warning', f'Missing {len(missing_folders)} NE data folders'))
 
         # Check missing files
         missing_files = nic_validation.get('missing_files', {})
         if missing_files:
             total_missing = sum(len(files['files']) for files in missing_files.values())
-            issues.append(f"⚠️ Missing {total_missing} key files")
+            issues.append(('Warning', f'Missing {total_missing} key files'))
 
         # Check unsupported types
         unsupported_types = nic_validation.get('unsupported_types', [])
         if unsupported_types:
-            issues.append(f"⚠️ {len(unsupported_types)} unsupported NE types")
+            issues.append(('Warning', f'{len(unsupported_types)} unsupported NE types'))
 
-        if issues:
-            html += "<ul style='margin: 8px 0; padding-left: 20px;'>"
-            for issue in issues:
-                html += f"<li style='margin: 4px 0; color: #555;'>{issue}</li>"
-            html += "</ul>"
-        else:
-            html += "<p style='margin: 8px 0; color: #4CAF50; font-weight: bold;'>✓ No package-level issues found</p>"
+        # Add rows
+        for idx, (issue_type, description) in enumerate(issues, 1):
+            row_style = ''
+            if idx % 2 == 0:
+                row_style = 'background-color: #ffffff;'
+            else:
+                row_style = 'background-color: #fafafa;'
+
+            color = '#F44336' if issue_type == 'Error' else '#FF9800'
+
+            html += f"""
+                <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
+                    <td style="padding: 10px; font-weight: bold; color: {color};">{issue_type}</td>
+                    <td style="padding: 10px; color: #555;">{description}</td>
+                </tr>
+            """
+
+        if not issues:
+            html += """
+                <tr style="background-color: #ffffff;">
+                    <td colspan="2" style="padding: 12px; color: #4CAF50; font-weight: bold; text-align: center;">
+                        ✓ No package-level issues found
+                    </td>
+                </tr>
+            """
 
         html += """
-            </div>
+            </table>
         </div>
         """
 
-        return html
+        label = QLabel()
+        label.setTextFormat(Qt.TextFormat.RichText)
+        label.setWordWrap(True)
+        label.setText(html)
+        return label
 
-    def _get_ne_details_html(self, nic_validation):
-        """Generate HTML for NE-level details"""
+    def _get_ne_issues_table_html(self, nic_validation):
+        """Generate QLabel with NE-level issues table"""
         html = """
-        <div style="margin-top: 20px; border: 2px solid #E3F2FD; border-radius: 5px; overflow: hidden;">
-            <div style="background-color: #E3F2FD; padding: 10px; font-weight: bold; color: #1976D2;">
+        <div style="border: 2px solid #E3F2FD; border-radius: 6px; overflow: hidden;">
+            <div style="background-color: #E3F2FD; padding: 12px; font-weight: bold; color: #1976D2;">
                 Network Element Details
             </div>
-            <div style="padding: 12px; color: #555;">
+            <table style="width: 100%; border-collapse: collapse; margin: 12px;">
+                <tr style="background-color: #f9f9f9; border-bottom: 2px solid #E3F2FD;">
+                    <th style="padding: 10px; text-align: left; color: #555;">#</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">NE Name</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">Type</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">Status</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">Issues</th>
+                </tr>
         """
 
         static_mml_validation = nic_validation.get('static_mml_validation')
@@ -971,113 +995,84 @@ class ValidatorApp(QMainWindow):
             invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
             warning_ne = static_mml_validation.get('warning_ne_count', 0)
 
-            # Show summary
-            html += f"""
-                <div style="background-color: #F5F5F5; padding: 10px; border-radius: 4px; margin-bottom: 12px;">
-                    <strong>Summary:</strong> Total: {total_ne} |
-                    <span style="color: #4CAF50;">Valid: {valid_ne}</span> |
-                    <span style="color: #FF9800;">Warning: {warning_ne}</span> |
-                    <span style="color: #F44336;">Invalid: {invalid_ne}</span>
-                </div>
-            """
-
-            # Show each NE's details
             ne_results = static_mml_validation.get('ne_results', [])
 
             if ne_results:
-                html += "<div style='max-height: 400px; overflow-y: auto;'>"
                 for idx, ne_result in enumerate(ne_results, 1):
                     ne_valid = ne_result.get('valid')
+                    ne_name = ne_result.get('ne_name', '')
+                    ne_type = ne_result.get('ne_type', '')
 
-                    # Status color and icon
+                    # Status
                     if ne_valid is True:
-                        status_icon = "✓"
-                        status_color = "#4CAF50"
-                        status_text = "Valid"
+                        status = 'Valid'
+                        status_color = '#4CAF50'
                     elif ne_valid is False:
-                        status_icon = "✗"
-                        status_color = "#F44336"
-                        status_text = "Invalid"
+                        status = 'Invalid'
+                        status_color = '#F44336'
                     else:
-                        status_icon = "−"
-                        status_color = "#FF9800"
-                        status_text = "Not Required"
+                        status = 'Not Required'
+                        status_color = '#FF9800'
 
-                    html += f"""
-                        <div style="margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                            <div style="font-weight: bold; color: #333; margin-bottom: 6px;">
-                                [{idx}. {ne_result['ne_name']} ({ne_result['ne_type']})]
-                                <span style="float: right; color: {status_color};">
-                                    {status_icon} {status_text}
-                                </span>
-                            </div>
-                    """
-
-                    # Show missing paths
+                    # Issues
                     missing_paths = ne_result.get('missing_paths', [])
                     if missing_paths:
-                        html += f"""
-                            <div style="margin-left: 12px; margin-bottom: 6px;">
-                                <span style="color: #F44336;">❌ Missing paths:</span>
-                                <div style="margin-left: 12px; font-family: monospace; font-size: 12px; color: #555;">
-                        """
-                        for path in missing_paths:
-                            html += f"<div style='padding: 2px 0;'>{path}</div>"
-                        html += """
-                                </div>
-                            </div>
-                        """
+                        issues = f'<span style="color: #F44336;">{", ".join(missing_paths)}</span>'
+                    else:
+                        issues = '-'
 
-                    # Show found paths
-                    found_paths = ne_result.get('found_paths', [])
-                    if found_paths:
-                        # Show only first 3 found paths to avoid clutter
-                        display_paths = found_paths[:3]
-                        html += f"""
-                            <div style="margin-left: 12px;">
-                                <span style="color: #4CAF50;">✓ Found paths:</span>
-                                <div style="margin-left: 12px; font-family: monospace; font-size: 11px; color: #555;">
-                        """
-                        for path in display_paths:
-                            # Extract relative path for display
-                            if '/' in path:
-                                relative_path = path.split('/')[-2:]  # Get last 2 parts
-                                path_display = '/'.join(relative_path)
-                            else:
-                                path_display = path
-                            html += f"<div style='padding: 2px 0; overflow: hidden; text-overflow: ellipsis;'>{path_display}</div>"
+                    # Row style
+                    row_style = 'background-color: #ffffff;' if idx % 2 == 1 else 'background-color: #fafafa;'
 
-                        if len(found_paths) > 3:
-                            html += f"<div style='padding: 2px 0; color: #999; font-style: italic;'>... and {len(found_paths) - 3} more files</div>"
-
-                        html += """
-                                </div>
-                            </div>
-                        """
-
-                    # Show description if no paths shown
-                    if not missing_paths and not found_paths:
-                        description = ne_result.get('description', 'No description')
-                        html += f"""
-                            <div style="margin-left: 12px; color: #666; font-style: italic;">
-                                {description}
-                            </div>
-                        """
-
-                    html += "</div>"
-
-                html += "</div>"
+                    html += f"""
+                        <tr style="{row_style} border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 10px; color: #666;">{idx}</td>
+                            <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}</td>
+                            <td style="padding: 10px; color: #555;">{ne_type}</td>
+                            <td style="padding: 10px; font-weight: bold; color: {status_color};">{status}</td>
+                            <td style="padding: 10px; color: #555;">{issues}</td>
+                        </tr>
+                    """
             else:
-                html += "<p>No NE instances found</p>"
+                html += """
+                    <tr style="background-color: #ffffff;">
+                        <td colspan="5" style="padding: 12px; color: #666; text-align: center;">
+                            No NE instances found
+                        </td>
+                    </tr>
+                """
         else:
-            html += "<p>No static MML validation data available</p>"
+            html += """
+                <tr style="background-color: #ffffff;">
+                    <td colspan="5" style="padding: 12px; color: #666; text-align: center;">
+                        No static MML validation data available
+                    </td>
+                </tr>
+                """
+
+        # Add summary row
+        if static_mml_validation:
+            html += f"""
+                <tr style="background-color: #F5F5F5; border-top: 2px solid #E3F2FD;">
+                    <td colspan="5" style="padding: 12px; font-weight: bold;">
+                        Summary: Total: {total_ne} |
+                        <span style="color: #4CAF50;">Valid: {valid_ne}</span> |
+                        <span style="color: #FF9800;">Warning: {warning_ne}</span> |
+                        <span style="color: #F44336;">Invalid: {invalid_ne}</span>
+                    </td>
+                </tr>
+            """
 
         html += """
-            </div>
+            </table>
         </div>
         """
 
-        return html
+        label = QLabel()
+        label.setTextFormat(Qt.TextFormat.RichText)
+        label.setWordWrap(True)
+        label.setText(html)
+        return label
 
     def _export_csv(self, filename):
         """Export to CSV file"""
