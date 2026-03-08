@@ -455,36 +455,41 @@ class ValidatorApp(QMainWindow):
                 package_color = COLORS['text_secondary']
 
             # Generate detail information
-            # Start with Pass status
-            status = 'Pass'
-            status_color = COLORS['success']
-            detail = ''
+            # Check if Package Type is Unknown
+            if package_type == 'Unknown':
+                status = 'Fail'
+                status_color = COLORS['error']
+                detail = 'Invalid package format'
+            else:
+                # Start with Pass status
+                status = 'Pass'
+                status_color = COLORS['success']
+                detail = ''
 
-            # Check if there are any issues (package-level or NE-level)
-            has_issues = False
+                # Check if there are any issues (package-level or NE-level)
+                has_issues = False
 
-            if package_type == 'NIC Package':
-                nic_validation = file_info.get('nic_validation')
-                if nic_validation:
-                    # Check package-level issues
-                    if not nic_validation.get('valid', True):
-                        has_issues = True
-                        status = 'Fail'
-                        status_color = COLORS['error']
-
-                    # Check NE-level issues
-                    static_mml_validation = nic_validation.get('static_mml_validation')
-                    if static_mml_validation:
-                        invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
-                        if invalid_ne > 0:
+                if package_type == 'NIC Package':
+                    nic_validation = file_info.get('nic_validation')
+                    if nic_validation:
+                        # Check package-level issues
+                        if not nic_validation.get('valid', True):
                             has_issues = True
-                            if status == 'Pass':
-                                status = 'Warning'
-                                status_color = COLORS['warning']
+                            status = 'Fail'
+                            status_color = COLORS['error']
 
-            # Only show "View Details" button for failed/warning packages
-            if has_issues:
-                detail = 'View Details'
+                        # Check NE-level issues (change Warning to Fail)
+                        static_mml_validation = nic_validation.get('static_mml_validation')
+                        if static_mml_validation:
+                            invalid_ne = static_mml_validation.get('invalid_ne_count', 0)
+                            if invalid_ne > 0:
+                                has_issues = True
+                                status = 'Fail'  # Changed from Warning to Fail
+                                status_color = COLORS['error']
+
+                # Only show "View Details" button for failed packages
+                if has_issues:
+                    detail = 'View Details'
 
             self.all_valid_files.append({
                 'file_info': file_info,
