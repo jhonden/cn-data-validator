@@ -102,7 +102,51 @@ class ValidatorApp(QMainWindow):
         self.all_invalid_files = []  # 存储所有无效文件数据
         self.filter_widgets = {}  # 存储筛选控件
 
+        # Language and translation
+        self.ui_language = self._detect_language()
+        self.translations = {
+            'en': {
+                'error_type_static_mml_missing': 'Static MML Missing',
+                'pass': 'Pass',
+                'fail': 'Fail',
+                'not_required': 'Not Required',
+                'warning': 'Warning',
+                'summary': 'Summary',
+                'total': 'Total',
+                'no_ne_found': 'No NE instances found',
+                'no_data_available': 'No static MML validation data available',
+                'ne_details_title': 'Network Element Details',
+                'no_package_issues': 'No package-level issues found',
+            },
+            'zh': {
+                'error_type_static_mml_missing': '静态MML缺失',
+                'pass': '通过',
+                'fail': '不通过',
+                'not_required': '不要求',
+                'warning': '警告',
+                'summary': '汇总',
+                'total': '总计',
+                'no_ne_found': '未找到网元实例',
+                'no_data_available': '无静态MML校验数据',
+                'ne_details_title': '网元详情',
+                'no_package_issues': '未发现包级问题',
+            }
+        }
+
         self.init_ui()
+
+    def _detect_language(self):
+        """Detect system language"""
+        import locale
+        system_locale = locale.getdefaultlocale()[0]
+        # Default to English if locale is not Chinese
+        if system_locale and ('zh' in system_locale.lower() or 'cn' in system_locale.lower()):
+            return 'zh'
+        return 'en'
+
+    def _t(self, key: str) -> str:
+        """Get translated text"""
+        return self.translations[self.ui_language].get(key, key)
 
     def init_ui(self):
         """Initialize UI"""
@@ -858,7 +902,7 @@ class ValidatorApp(QMainWindow):
 
     def _get_package_issues_table_html(self, nic_validation):
         """Generate QLabel with package-level issues table"""
-        html = """
+        html = f"""
         <div style="border: 2px solid #FFCDD2; border-radius: 6px; overflow: hidden;">
             <div style="background-color: #FFEBEE; padding: 12px; font-weight: bold; color: #C62828;">
                 Package Level Issues
@@ -910,10 +954,10 @@ class ValidatorApp(QMainWindow):
             """
 
         if not issues:
-            html += """
+            html += f"""
                 <tr style="background-color: #ffffff;">
                     <td colspan="2" style="padding: 12px; color: #4CAF50; font-weight: bold; text-align: center;">
-                        ✓ No package-level issues found
+                        ✓ {self._t('no_package_issues')}
                     </td>
                 </tr>
             """
@@ -931,10 +975,10 @@ class ValidatorApp(QMainWindow):
 
     def _get_ne_issues_table_html(self, nic_validation):
         """Generate QLabel with NE-level issues table"""
-        html = """
+        html = f"""
         <div style="border: 2px solid #E3F2FD; border-radius: 6px; overflow: hidden;">
             <div style="background-color: #E3F2FD; padding: 12px; font-weight: bold; color: #1976D2;">
-                Network Element Details
+                {self._t('ne_details_title')}
             </div>
             <table style="width: 100%; border-collapse: collapse; margin: 12px;">
                 <tr style="background-color: #f9f9f9; border-bottom: 2px solid #E3F2FD;">
@@ -942,6 +986,7 @@ class ValidatorApp(QMainWindow):
                     <th style="padding: 10px; text-align: left; color: #555;">NE Name</th>
                     <th style="padding: 10px; text-align: left; color: #555;">Type</th>
                     <th style="padding: 10px; text-align: left; color: #555;">Status</th>
+                    <th style="padding: 10px; text-align: left; color: #555;">Error Type</th>
                     <th style="padding: 10px; text-align: left; color: #555;">Issues</th>
                 </tr>
         """
@@ -964,14 +1009,17 @@ class ValidatorApp(QMainWindow):
 
                     # Status
                     if ne_valid is True:
-                        status = 'Pass'
+                        status = self._t('pass')
                         status_color = '#4CAF50'
+                        error_type = '-'
                     elif ne_valid is False:
-                        status = 'Fail'
+                        status = self._t('fail')
                         status_color = '#F44336'
+                        error_type = self._t('error_type_static_mml_missing')
                     else:
-                        status = 'Not Required'
+                        status = self._t('not_required')
                         status_color = '#FF9800'
+                        error_type = '-'
 
                     # Issues
                     missing_paths = ne_result.get('missing_paths', [])
@@ -989,35 +1037,36 @@ class ValidatorApp(QMainWindow):
                             <td style="padding: 10px; color: #555; font-weight: bold;">{ne_name}</td>
                             <td style="padding: 10px; color: #555;">{ne_type}</td>
                             <td style="padding: 10px; font-weight: bold; color: {status_color};">{status}</td>
+                            <td style="padding: 10px; color: #555;">{error_type}</td>
                             <td style="padding: 10px; color: #555;">{issues}</td>
                         </tr>
                     """
             else:
-                html += """
+                html += f"""
                     <tr style="background-color: #ffffff;">
-                        <td colspan="5" style="padding: 12px; color: #666; text-align: center;">
-                            No NE instances found
+                        <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
+                            {self._t('no_ne_found')}
                         </td>
                     </tr>
                 """
         else:
-            html += """
+            html += f"""
                 <tr style="background-color: #ffffff;">
-                    <td colspan="5" style="padding: 12px; color: #666; text-align: center;">
-                        No static MML validation data available
+                    <td colspan="6" style="padding: 12px; color: #666; text-align: center;">
+                        {self._t('no_data_available')}
                     </td>
-                </tr>
+                    </tr>
                 """
 
         # Add summary row
         if static_mml_validation:
             html += f"""
                 <tr style="background-color: #F5F5F5; border-top: 2px solid #E3F2FD;">
-                    <td colspan="5" style="padding: 12px; font-weight: bold;">
-                        Summary: Total: {total_ne} |
-                        <span style="color: #4CAF50;">Pass: {valid_ne}</span> |
-                        <span style="color: #FF9800;">Warning: {warning_ne}</span> |
-                        <span style="color: #F44336;">Fail: {invalid_ne}</span>
+                    <td colspan="6" style="padding: 12px; font-weight: bold;">
+                        {self._t('summary')}: {self._t('total')}: {total_ne} |
+                        <span style="color: #4CAF50;">{self._t('pass')}: {valid_ne}</span> |
+                        <span style="color: #FF9800;">{self._t('warning')}: {warning_ne}</span> |
+                        <span style="color: #F44336;">{self._t('fail')}: {invalid_ne}</span>
                     </td>
                 </tr>
             """
