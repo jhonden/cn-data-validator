@@ -11,8 +11,10 @@ Supports three match modes:
 import os
 import glob
 import importlib
+import re
 from typing import Dict, List, Optional
 import yaml
+import xml.etree.ElementTree as ET
 
 
 class StaticMMLChecker:
@@ -124,7 +126,8 @@ class StaticMMLChecker:
 
         # Special handling for USCDB - check version format first
         if ne_type == 'USCDB':
-            expected_scenario = self._get_uscdb_expected_scenario(ne_parent_path, ne_instance.instance_id)
+            ne_folder_path = os.path.join(ne_parent_path, ne_instance.folder_name)
+            expected_scenario = self._get_uscdb_expected_scenario(ne_folder_path)
             if expected_scenario is None:
                 return None
 
@@ -138,61 +141,51 @@ class StaticMMLChecker:
         # For other NE types, use standard logic
         return self._check_standard_scenario(ne_parent_path, ne_type, ne_name)
 
-    def _get_uscdb_expected_scenario(self, ne_parent_path: str, instance_id: str) -> Optional[str]:
+    def _get_uscdb_expected_scenario(self, ne_folder_path: str) -> Optional[str]:
         """
         Get expected scenario for USCDB based on version format
 
         Args:
-            ne_parent_path: NE data parent folder path
-            instance_id: USCDB instance ID
+            ne_folder_path: NE data folder path (e.g., /path/USCDB_NE=1_IP_xxx_xxx_xxx_name)
 
         Returns:
             Expected scenario name based on version format, None if not found
         """
         try:
-            # Read TaskExtValue.xml
-            taskext_path = os.path.join(ne_parent_path, 'taskparam', 'TaskExtValue.xml')
-            if not os.path.exists(taskext_path):
+            # Read NeAllinfos.xml from NE folder
+            neallinfos_path = os.path.join(ne_folder_path, 'NeAllinfos.xml')
+            if not os.path.exists(neallinfos_path):
                 return None
 
-            with open(taskext_path, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Parse XML and extract neVersion
+            tree = ET.parse(neallinfos_path)
+            root = tree.getroot()
 
-            # Parse selNEInfo attribute (format: "64:V500R023C10SPC110|56:V500R023C10SPC100|...")
-            import re
-            selne_match = re.search(r'selNEInfo="([^"]+)"', content)
-            if not selne_match:
-                return None
+            # Find neVersion element
+            ne_version = None
+            for neinfo in root.findall('NeInfo'):
+                version_elem = neinfo.find('neVersion')
+                if version_elem is not None and version_elem.text:
+                    ne_version = version_elem.text.strip()
+                    break
 
-            selne_info = selne_match.group(1)
-            ne_entries = selne_info.split('|')
-
-            # Find version for this instance
-            version = None
-            for entry in ne_entries:
-                if ':' in entry:
-                    entry_instance, entry_version = entry.split(':', 1)
-                    if entry_instance == instance_id:
-                        version = entry_version
-                        break
-
-            if version is None:
+            if not ne_version:
                 return None
 
             # Determine version format
             # VRC format: starts with 'V' followed by letters/numbers (e.g., V500R020C10)
             # Dotted format: contains dots (e.g., 20.3.2)
-            if version.startswith('V') and re.match(r'^V\d+[A-Za-z]\d+', version):
+            if ne_version.startswith('V') and re.match(r'^V\d+[A-Za-z]\d+', ne_version):
                 # VRC format - use offline health check scenario
                 return 'Offline health check scenario'
-            elif '.' in version:
+            elif '.' in ne_version:
                 # Dotted format - use cloud health check scenario
                 return 'Cloud health check scenario'
             else:
                 # Unknown format - default to offline
                 return 'Offline health check scenario'
 
-        except Exception as e:
+        except Exception:
             return None
 
     def _read_scenario_from_taskinfo(self, ne_parent_path: str) -> Optional[str]:
