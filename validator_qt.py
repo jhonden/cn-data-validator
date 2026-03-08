@@ -421,7 +421,7 @@ class ValidatorApp(QMainWindow):
             self.table.setRowCount(1)
             empty_item = QTableWidgetItem("No files found in the selected directory")
             empty_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            empty_item.setForeground(QColor("#999999"))
+            empty_item.setForeground(QColor(COLORS['text_hint']))
             empty_item.setFont(QFont("Arial", 12, QFont.Weight.Normal))
             self.table.setItem(0, 0, empty_item)
             self.table.setSpan(0, 0, 1, 7)  # Merge all columns
@@ -448,16 +448,16 @@ class ValidatorApp(QMainWindow):
 
             # Set color based on package type
             if package_type == 'NIC Package':
-                package_color = '#2196F3'  # Blue
+                package_color = COLORS['primary']
             elif package_type == 'Unknown':
-                package_color = '#FF9800'  # Orange
+                package_color = COLORS['warning']
             else:
-                package_color = '#666666'  # Gray
+                package_color = COLORS['text_secondary']
 
             # Generate detail information
             # Start with Valid status
             status = 'Valid'
-            status_color = '#4CAF50'
+            status_color = COLORS['success']
             detail = ''
 
             # Check if there are any issues (package-level or NE-level)
@@ -470,7 +470,7 @@ class ValidatorApp(QMainWindow):
                     if not nic_validation.get('valid', True):
                         has_issues = True
                         status = 'Invalid'
-                        status_color = '#F44336'
+                        status_color = COLORS['error']
 
                     # Check NE-level issues
                     static_mml_validation = nic_validation.get('static_mml_validation')
@@ -480,7 +480,7 @@ class ValidatorApp(QMainWindow):
                             has_issues = True
                             if status == 'Valid':
                                 status = 'Warning'
-                                status_color = '#FF9800'
+                                status_color = COLORS['warning']
 
             # Only show "View Details" button for failed/warning packages
             if has_issues:
@@ -571,8 +571,8 @@ class ValidatorApp(QMainWindow):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
                 # Only apply link style to "View Details" text
-                if str(item_text) == '查看详情':
-                    item.setForeground(QColor('#2196F3'))  # Blue link color
+                if str(item_text) == 'View Details':
+                    item.setForeground(QColor(COLORS['link']))
                     item.setFont(QFont("Arial", 9, QFont.Weight.Underline))  # Underline to look like link
 
             self.table.setItem(row, col, item)
