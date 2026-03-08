@@ -12,6 +12,7 @@ import os
 import re
 import tarfile
 import tempfile
+import sys
 from typing import Dict, List, Optional, Set
 from datetime import datetime
 import xml.etree.ElementTree as ET
@@ -19,6 +20,26 @@ import xml.etree.ElementTree as ET
 # Import static MML checker
 from .static_mml_checker import StaticMMLChecker
 from .scenario_checker import ScenarioChecker
+
+
+def get_resource_path(relative_path: str) -> str:
+    """
+    获取资源文件的绝对路径，支持开发环境和打包环境
+
+    Args:
+        relative_path: 相对于当前模块的相对路径
+
+    Returns:
+        资源文件的绝对路径
+    """
+    try:
+        # PyInstaller 打包后的临时目录
+        base_path = sys._MEIPASS
+        # 在打包后，资源文件直接放在 _MEIPASS 的 utils 子目录中
+        return os.path.join(base_path, 'utils', os.path.basename(relative_path))
+    except AttributeError:
+        # 开发环境，使用当前文件所在目录
+        return os.path.join(os.path.dirname(__file__), relative_path)
 
 
 class NEInstance:
@@ -89,9 +110,9 @@ class NICValidator:
         self.neinfo_path = None
         self.temp_dir = None
         # Initialize checkers
-        config_path = os.path.join(os.path.dirname(__file__), 'static_mml_config.yaml')
+        config_path = get_resource_path('static_mml_config.yaml')
         self.static_mml_checker = StaticMMLChecker(config_path)
-        scenario_config_path = os.path.join(os.path.dirname(__file__), 'scenario_config.yaml')
+        scenario_config_path = get_resource_path('scenario_config.yaml')
         self.scenario_checker = ScenarioChecker(scenario_config_path)
 
     def validate(self) -> Dict:

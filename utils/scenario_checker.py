@@ -8,6 +8,7 @@ Validates collection scenarios for network elements (NEs) by checking:
 """
 
 import os
+import sys
 import re
 from typing import Dict, List, Optional
 import yaml
@@ -24,8 +25,27 @@ class ScenarioChecker:
         Args:
             config_path: Path to scenario configuration file (scenario_config.yaml)
         """
-        self.config_path = config_path
+        self.config_path = self._resolve_config_path(config_path)
         self.config = self._load_config()
+
+    def _resolve_config_path(self, config_path: str) -> str:
+        """
+        Resolve config path for both development and PyInstaller environments
+
+        Args:
+            config_path: Original config path
+
+        Returns:
+            Absolute path that works in both environments
+        """
+        try:
+            # PyInstaller: files are extracted to sys._MEIPASS
+            base_path = sys._MEIPASS
+            # Config files are in the utils directory in the bundle
+            return os.path.join(base_path, 'utils', os.path.basename(config_path))
+        except AttributeError:
+            # Development: use the provided path directly
+            return config_path
 
     def _load_config(self) -> Dict:
         """Load configuration file"""

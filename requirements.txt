@@ -9,4 +9,10 @@ PySimpleGUI>=4.60.0
 # GUI版本3: PyQt6版本 (validator_qt.py)
 PyQt6>=6.5.0
 
+# Excel导出功能
+openpyxl>=3.0.0
+
+# 配置文件解析
+PyYAML>=6.0
+
 # 核心功能使用标准库，无需额外依赖

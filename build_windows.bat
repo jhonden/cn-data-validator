@@ -50,7 +50,7 @@ echo [信息] 开始打包 PyQt6 版本...
 echo.
 
 REM 打包 PyQt6 版本
-pyinstaller --onefile --windowed --name="网络数据包校验工具" --icon=NONE validator_qt.py
+pyinstaller --onefile --windowed --name="网络数据包校验工具" --icon=NONE --add-data "utils/static_mml_config.yaml;utils" --add-data "utils/scenario_config.yaml;utils" validator_qt.py
 if errorlevel 1 (
     echo [错误] 打包失败
     pause
@@ -75,7 +75,7 @@ set /p pack_cli="是否同时打包命令行版本？(Y/N): "
 if /i "%pack_cli%"=="Y" (
     echo.
     echo [信息] 打包命令行版本...
-    pyinstaller --onefile --name="网络数据包校验工具(CLI)" validator_cli.py
+    pyinstaller --onefile --name="网络数据包校验工具(CLI)" --add-data "utils/static_mml_config.yaml;utils" --add-data "utils/scenario_config.yaml;utils" validator_cli.py
     echo.
     echo 生成的文件: dist\网络数据包校验工具(CLI).exe
 )
