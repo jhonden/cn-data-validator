@@ -1200,9 +1200,10 @@ class ValidatorApp(QMainWindow):
         ne_scenario_fail = 0
 
         for file_data in self.all_valid_files + self.all_invalid_files:
-            validation = file_data.get('validation_result', {})
-            static_mml_validation = validation.get('static_mml_validation')
-            scenario_validation = validation.get('scenario_validation')
+            file_info = file_data.get('file_info', {})
+            nic_validation = file_info.get('nic_validation', {})
+            static_mml_validation = nic_validation.get('static_mml_validation')
+            scenario_validation = nic_validation.get('scenario_validation')
 
             if static_mml_validation:
                 total_ne += static_mml_validation.get('total_ne_count', 0)
@@ -1236,13 +1237,26 @@ class ValidatorApp(QMainWindow):
         for file_data in self.all_valid_files + self.all_invalid_files:
             status = file_data.get('status', 'Unknown')
             # Extract error message from validation result
-            validation = file_data.get('validation_result', {})
+            file_info = file_data.get('file_info', {})
+            nic_validation = file_info.get('nic_validation', {})
             error_msg = '-'
 
-            if not validation.get('valid', True):
-                errors = validation.get('errors', [])
-                if errors:
+            # Check for package-level errors
+            if nic_validation:
+                errors = nic_validation.get('errors', [])
+                if errors and not nic_validation.get('valid', True):
                     error_msg = errors[0] if isinstance(errors[0], str) else str(errors[0])
+                else:
+                    # Check for NE-level errors
+                    static_mml_validation = nic_validation.get('static_mml_validation')
+                    scenario_validation = nic_validation.get('scenario_validation')
+                    invalid_ne_count = 0
+                    if static_mml_validation:
+                        invalid_ne_count += static_mml_validation.get('invalid_ne_count', 0)
+                    if scenario_validation:
+                        invalid_ne_count += scenario_validation.get('invalid_ne_count', 0)
+                    if invalid_ne_count > 0:
+                        error_msg = f'{invalid_ne_count} NE(s) have validation errors'
 
             ws.append([
                 file_data.get('name', ''),
@@ -1295,9 +1309,10 @@ class ValidatorApp(QMainWindow):
         idx = 1
 
         for file_data in self.all_valid_files + self.all_invalid_files:
-            validation = file_data.get('validation_result', {})
-            static_mml_validation = validation.get('static_mml_validation')
-            scenario_validation = validation.get('scenario_validation')
+            file_info = file_data.get('file_info', {})
+            nic_validation = file_info.get('nic_validation', {})
+            static_mml_validation = nic_validation.get('static_mml_validation')
+            scenario_validation = nic_validation.get('scenario_validation')
 
             if not static_mml_validation and not scenario_validation:
                 continue
@@ -1415,9 +1430,10 @@ class ValidatorApp(QMainWindow):
 
         for file_data in self.all_valid_files + self.all_invalid_files:
             file_name = file_data.get('name', '')
-            validation = file_data.get('validation_result', {})
-            static_mml_validation = validation.get('static_mml_validation')
-            scenario_validation = validation.get('scenario_validation')
+            file_info = file_data.get('file_info', {})
+            nic_validation = file_info.get('nic_validation', {})
+            static_mml_validation = nic_validation.get('static_mml_validation')
+            scenario_validation = nic_validation.get('scenario_validation')
 
             if not static_mml_validation and not scenario_validation:
                 continue
