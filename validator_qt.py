@@ -26,6 +26,8 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 from utils.file_scanner import FileScanner
 from utils.package_identifier import PackageIdentifier
+from utils.design_tokens import COLORS, SPACING, SIZES, BORDER_RADIUS
+from utils.typography import FONT_SIZE, FONT_WEIGHT
 from exceptions import (
     ValidationException,
     DirectoryNotFoundException,
@@ -119,48 +121,54 @@ class ValidatorApp(QMainWindow):
         control_layout = QHBoxLayout()
 
         self.dir_label = QLabel("Select Package Directory:")
-        self.dir_label.setFont(QFont("Arial", 10))
+        self.dir_label.setFont(QFont(FONTS['default'], FONT_SIZE['small'], FONT_WEIGHT['normal']))
         control_layout.addWidget(self.dir_label)
 
         self.dir_path_label = QLabel("")
-        self.dir_path_label.setStyleSheet("color: #2196F3; font-weight: bold; background-color: #E3F2FD; padding: 6px 12px; border-radius: 4px;")
-        self.dir_path_label.setMinimumWidth(400)
+        self.dir_path_label.setStyleSheet(
+            f"color: {COLORS['text_primary']}; "
+            f"font-weight: {FONT_WEIGHT['bold']}; "
+            f"background-color: {COLORS['info']}; "
+            f"padding: {SPACING['small']}px {SPACING['medium']}px; "
+            f"border-radius: {BORDER_RADIUS['tiny']}px;"
+        )
+        self.dir_path_label.setMinimumWidth(SIZES['input_medium'])
         control_layout.addWidget(self.dir_path_label)
 
         self.select_btn = QPushButton("Select Directory")
-        self.select_btn.setFixedWidth(140)
-        self.select_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
+        self.select_btn.setFixedWidth(SIZES['button_medium'])
+        self.select_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['primary']};
+                color: {COLORS['text_inverse']};
                 border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
+                padding: {SPACING['small']}px {SPACING['medium']}px;
+                border-radius: {BORDER_RADIUS['tiny']}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS['link_hover']};
+            }}
         """)
         self.select_btn.clicked.connect(self.select_directory)
         control_layout.addWidget(self.select_btn)
 
         self.validate_btn = QPushButton("Start Validation")
-        self.validate_btn.setFixedWidth(140)
-        self.validate_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
+        self.validate_btn.setFixedWidth(SIZES['button_medium'])
+        self.validate_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['success']};
+                color: {COLORS['text_inverse']};
                 border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
+                padding: {SPACING['small']}px {SPACING['medium']}px;
+                border-radius: {BORDER_RADIUS['tiny']}px;
+                font-weight: {FONT_WEIGHT['bold']};
+            }}
+            QPushButton:hover {{
                 background-color: #45a049;
-            }
-            QPushButton:disabled {
-                background-color: #cccccc;
-            }
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS['text_hint']};
+            }}
         """)
         self.validate_btn.clicked.connect(self.start_validation)
         self.validate_btn.setEnabled(False)
@@ -185,7 +193,8 @@ class ValidatorApp(QMainWindow):
 
         # Filter label
         filter_label = QLabel("Filter:")
-        filter_label.setStyleSheet("font-weight: bold; color: #666;")
+        filter_label.setFont(QFont(FONTS['default'], FONT_SIZE['small'], FONT_WEIGHT['bold']))
+        filter_label.setStyleSheet(f"color: {COLORS['text_primary']};")
         filter_layout.addWidget(filter_label)
 
         # Filename filter
@@ -301,18 +310,18 @@ class ValidatorApp(QMainWindow):
         button_layout = QHBoxLayout()
 
         self.export_btn = QPushButton("Export Results")
-        self.export_btn.setFixedWidth(140)
-        self.export_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #FF9800;
-                color: white;
+        self.export_btn.setFixedWidth(SIZES['button_medium'])
+        self.export_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['warning']};
+                color: {COLORS['text_inverse']};
                 border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
+                padding: {SPACING['small']}px {SPACING['medium']}px;
+                border-radius: {BORDER_RADIUS['tiny']}px;
+            }}
+            QPushButton:hover {{
                 background-color: #F57C00;
-            }
+            }}
         """)
         self.export_btn.clicked.connect(self.export_results)
         self.export_btn.setEnabled(False)
