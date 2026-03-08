@@ -1193,23 +1193,22 @@ class ValidatorApp(QMainWindow):
         ws.append([])
         row += 8
 
-        # NE statistics
+        # NE statistics - accumulate from all files
         total_ne = 0
         ne_pass = 0
         ne_static_mml_fail = 0
         ne_scenario_fail = 0
 
-        for file_data in self.all_invalid_files:
+        for file_data in self.all_valid_files + self.all_invalid_files:
             validation = file_data.get('validation_result', {})
             static_mml_validation = validation.get('static_mml_validation')
             scenario_validation = validation.get('scenario_validation')
 
             if static_mml_validation:
-                total_ne = static_mml_validation.get('total_ne_count', 0)
-                ne_pass = static_mml_validation.get('valid_ne_count', 0)
-                ne_static_mml_fail = static_mml_validation.get('invalid_ne_count', 0)
-                ne_scenario_fail = scenario_validation.get('invalid_ne_count', 0) if scenario_validation else 0
-                break
+                total_ne += static_mml_validation.get('total_ne_count', 0)
+                ne_pass += static_mml_validation.get('valid_ne_count', 0)
+                ne_static_mml_fail += static_mml_validation.get('invalid_ne_count', 0)
+                ne_scenario_fail += scenario_validation.get('invalid_ne_count', 0) if scenario_validation else 0
 
         ws.append(['网元总数', total_ne])
         ws.append(['网元 Pass', ne_pass])
@@ -1295,7 +1294,7 @@ class ValidatorApp(QMainWindow):
         row = 2
         idx = 1
 
-        for file_data in self.all_invalid_files:
+        for file_data in self.all_valid_files + self.all_invalid_files:
             validation = file_data.get('validation_result', {})
             static_mml_validation = validation.get('static_mml_validation')
             scenario_validation = validation.get('scenario_validation')
@@ -1414,7 +1413,7 @@ class ValidatorApp(QMainWindow):
 
         row = 2
 
-        for file_data in self.all_invalid_files:
+        for file_data in self.all_valid_files + self.all_invalid_files:
             file_name = file_data.get('name', '')
             validation = file_data.get('validation_result', {})
             static_mml_validation = validation.get('static_mml_validation')
