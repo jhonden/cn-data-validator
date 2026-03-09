@@ -57,6 +57,86 @@
 - 使用大驼峰命名法（PascalCase）命名类
 - 常量使用全大写下划线分隔（UPPER_SNAKE_CASE）
 
+### 2.2 文件格式规范
+
+#### 2.2.1 换行符规范（必须遵循）
+
+**⚠️ 关键规则：Windows批处理文件必须使用CRLF换行符**
+
+由于本项目在Mac/Linux环境开发，但最终在Windows环境执行，必须严格遵守以下换行符规则：
+
+| 文件类型 | 必须使用换行符 | 说明 |
+|---------|---------------|------|
+| `.bat`、`.cmd` | **CRLF (`\r\n`)** | Windows批处理文件必须使用CRLF，否则无法正常执行 |
+| Python文件 (`.py`) | LF (`\n`) | Python文件使用标准Unix换行符（开发环境默认） |
+| Shell脚本 (`.sh`) | LF (`\n`) | Shell脚本使用Unix换行符 |
+| Markdown文件 (`.md`) | LF (`\n`) | 文档文件使用Unix换行符 |
+| 其他配置文件 | LF (`\n`) | 默认使用Unix换行符 |
+
+#### 2.2.2 批处理文件处理要求
+
+**创建/修改 `.bat` 文件时必须：**
+
+1. **使用CRLF换行符**
+   - Mac/Linux: 使用 `unix2dos` 工具转换
+   ```bash
+   unix2dos build_windows.bat
+   ```
+   - 或使用 `sed` 命令：
+   ```bash
+   sed -i '' 's/$/\r/' build_windows.bat
+   ```
+
+2. **验证换行符**
+   ```bash
+   # 查看字节格式，应显示 \r\n
+   od -c build_windows.bat | head -10
+   ```
+
+3. **提交前检查**
+   - 所有 `.bat` 和 `.cmd` 文件必须验证使用CRLF
+   - Git提交前必须确认文件换行符正确
+
+#### 2.2.3 Windows执行环境编码
+
+**Windows批处理脚本必须设置UTF-8编码环境变量：**
+
+```batch
+@echo off
+REM 设置Python编码为UTF-8
+set PYTHONIOENCODING=utf-8
+chcp 65001 >nul
+```
+
+这样可以确保：
+- Python脚本正确识别UTF-8编码
+- 中文输出在Windows命令行中正常显示
+- 避免编码相关错误
+
+#### 2.2.4 Python文件编码声明
+
+**所有Python文件必须添加UTF-8编码声明（文件第一行或第二行）：**
+
+```python
+# -*- coding: utf-8 -*-
+```
+
+对于有shebang行的文件：
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+```
+
+#### 2.2.5 编码问题排查清单
+
+如果在Windows上遇到编码或执行问题，按以下顺序检查：
+
+- [ ] `.bat` 文件是否使用CRLF换行符
+- [ ] `.bat` 文件是否设置 `PYTHONIOENCODING=utf-8`
+- [ ] Python文件是否包含 `# -*- coding: utf-8 -*-` 声明
+- [ ] 是否在cmd中执行了 `chcp 65001`（或在bat中已设置）
+- [ ] Windows系统是否启用了"UTF-8提供全球语言支持"（可选但推荐）
+
 ### 2.2 异常处理
 
 - 使用自定义异常类
