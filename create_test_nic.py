@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """创建测试 NIC 包数据
 
 生成包含不同情况的测试数据：

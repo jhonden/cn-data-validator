@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 USCDB Custom Static MML Validator
 USCDB 网元自定义静态 MML 校验器

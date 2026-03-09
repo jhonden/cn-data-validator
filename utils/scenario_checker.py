@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Scenario Checker
 网元采集场景校验器

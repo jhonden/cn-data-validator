@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 vUSN Custom Static MML Validator
 vUSN 网元自定义静态 MML 校验器

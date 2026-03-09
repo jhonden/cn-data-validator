@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 设计令牌系统
 Design Tokens System

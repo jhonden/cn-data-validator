@@ -1,4 +1,6 @@
 @echo off
+REM 设置Python编码为UTF-8
+set PYTHONIOENCODING=utf-8
 chcp 65001 >nul
 echo ============================================================
 echo              网络数据包校验工具 - Windows 打包脚本

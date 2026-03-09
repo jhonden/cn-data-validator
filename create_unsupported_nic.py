@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """创建完全不支持的 NIC 包测试数据
 
 这个包中的所有网元类型都不在 CNAE 支持列表中，

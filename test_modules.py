@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Quick test to verify core functionality without GUI"""
 
 import os

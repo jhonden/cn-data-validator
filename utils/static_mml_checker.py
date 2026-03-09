@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Static MML Configuration Checker
 网元级别静态 MML 配置检查器

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Network Package Validator - PyQt6 GUI Version
 A local tool for validating network data collection results.

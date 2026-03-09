@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """创建非匿名化方式采集的 NIC 包测试数据
 
 预期结果:

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 vUGW Custom Static MML Validator
 vUGW 网元自定义静态 MML 校验器

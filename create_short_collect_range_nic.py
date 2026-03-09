@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """创建采集时间范围小于24小时的 NIC 包测试数据
 
 预期结果:

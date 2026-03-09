@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 vCG Custom Static MML Validator
 vCG 网元自定义静态 MML 校验器

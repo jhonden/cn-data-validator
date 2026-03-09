@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 网络数据包校验工具 - 命令行版本
 适用于无法使用 GUI 的环境

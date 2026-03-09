@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 排版令牌系统
 Typography Tokens System
