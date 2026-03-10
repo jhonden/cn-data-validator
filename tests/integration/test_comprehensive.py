@@ -199,23 +199,52 @@ class TestPackageIdentifierComprehensive:
         from src.service.package_identifier import PackageIdentifier
         identifier = PackageIdentifier()
 
-        # 测试各种可能的NIC包名称
+        # 创建真实的NIC包结构进行测试
+        timestamp = "20250310103000"
+
+        # 创建NIC包目录结构
+        nic_dir = os.path.join(self.test_dir, timestamp)
+        os.makedirs(nic_dir)
+
+        # 创建neinfo.txt
+        with open(os.path.join(nic_dir, 'neinfo.txt'), 'w') as f:
+            f.write("NE1,UNC,001,192.168.1.100,group1,Test NE\n")
+
+        # 创建报告文件
+        report_file = os.path.join(self.test_dir, f"{timestamp}_report.tar.gz")
+        with tarfile.open(report_file, 'w:gz') as tar:
+            pass  # 创建空报告文件
+
+        # 创建主包
+        nic_package = os.path.join(self.test_dir, f"{timestamp}.tar.gz")
+        with tarfile.open(nic_package, 'w:gz') as tar:
+            tar.add(nic_dir, arcname=timestamp)
+            tar.add(report_file, arcname=f"{timestamp}_report.tar.gz")
+
+        # 测试用例
         test_cases = [
-            ('20250310103000_report.tar.gz', 'NIC Package'),
-            ('20250310103000_report.tgz', 'Unknown'),  # 不支持.tgz
-            ('20250310103000_report.zip', 'Unknown'),  # ZIP不是NIC包格式
-            ('invalid_report.tar.gz', 'Unknown'),
-            ('20250310103000.tar.gz', 'Unknown'),  # 缺少_report
-            ('20250310_report.tar.gz', 'Unknown'),  # 时间格式不完整
-            ('20250310103000_report.tar.gz', 'NIC Package'),
+            (nic_package, f"{timestamp}.tar.gz", 'NIC Package'),
+            ('20250310103000_report.tgz', '', 'Unknown'),  # 不支持.tgz
+            ('20250310103000_report.zip', '', 'Unknown'),  # ZIP不是NIC包格式
+            ('invalid_report.tar.gz', '', 'Unknown'),
+            ('20250310103000.tar.gz', '', 'Unknown'),  # 缺少_report
+            ('20250310_report.tar.gz', '', 'Unknown'),  # 时间格式不完整
         ]
 
-        for file_name, expected_type in test_cases:
-            file_path = os.path.join(self.test_dir, file_name)
-            with open(file_path, 'w') as f:
-                f.write("dummy content")
+        for test_case in test_cases:
+            file_path = test_case[0]
+            file_name = test_case[1]
+            expected_type = test_case[2]
 
-            package_type, details = identifier.identify(file_path, file_name)
+            if os.path.exists(file_path):
+                result = identifier.identify(file_path, file_name)
+                package_type = result[0]
+                details = result[1]
+            else:
+                # 对于不存在的文件，使用文件名进行测试
+                result = identifier.identify("", file_name)
+                package_type = result[0]
+                details = result[1]
             print(f"   - {file_name}: {package_type} (期望: {expected_type})")
 
         print("✅ NIC包识别测试完成")

@@ -45,10 +45,14 @@ os.makedirs(nic_dir, exist_ok=True)
 with open(os.path.join(nic_dir, 'test.txt'), 'w') as f:
     f.write('test content')
 
-# Create tar.gz
+# Create report tar.gz first
+with tarfile.open(nic_report, 'w:gz') as tar:
+    pass  # 创建空报告文件
+
+# Create main tar.gz
 with tarfile.open(nic_file, 'w:gz') as tar:
-    tar.add(nic_dir, arcname='test_nic')
-    tar.add(nic_report, arcname='test_nic_report')
+    tar.add(nic_dir, arcname='20250203105511')
+    tar.add(nic_report, arcname='20250203105511_report.tar.gz')
 print(f"✓ Test NIC package created: {nic_file}")
 
 print()
