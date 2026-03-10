@@ -5,9 +5,7 @@ This directory contains the main application files for the Network Package Valid
 ## Files
 
 - `validator_qt.py` - PyQt6 GUI main application (recommended)
-- `validator.py` - CustomTkinter GUI application
 - `validator_cli.py` - Command line interface
-- `validator_psg.py` - PySimpleGUI application
 - `exceptions.py` - Custom exception classes
 
 ## Usage

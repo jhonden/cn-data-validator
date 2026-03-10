@@ -24,10 +24,6 @@ python3 src/validator_qt.py
 # Command line interface (no GUI dependencies)
 python3 src/validator_cli.py
 
-# Alternative GUI implementations
-python3 src/validator.py          # CustomTkinter (has macOS compatibility issues)
-python3 src/validator_psg.py      # PySimpleGUI
-
 # From scripts directory
 scripts/run_windows/run_gui_qt.bat  # Windows
 ./build_macos.sh                  # macOS/Linux

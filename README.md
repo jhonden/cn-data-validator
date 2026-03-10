@@ -8,16 +8,12 @@
 cn-data-validator/
 ├── src/                    # 主应用程序源代码
 │   ├── validator_qt.py      # PyQt6 GUI版本（推荐，跨平台兼容）
-│   ├── validator.py         # CustomTkinter GUI版本
 │   ├── validator_cli.py     # 命令行版本（无需GUI库）
-│   ├── validator_psg.py     # PySimpleGUI版本（备选）
 │   └── exceptions.py       # 自定义异常类
 ├── scripts/                # 工具脚本
 │   ├── run_windows/        # Windows启动和打包脚本
 │   │   ├── run_gui_qt.bat      # 启动PyQt6 GUI
 │   │   ├── run_cli.bat         # 启动命令行
-│   │   ├── run_gui_ctk.bat     # 启动CustomTkinter
-│   │   ├── run_gui_psg.bat     # 启动PySimpleGUI
 │   │   ├── build_windows.bat   # 打包Windows应用
 │   │   └── run.bat             # 选择菜单启动
 │   └── test_data_generator/ # 测试数据生成脚本
@@ -134,7 +130,7 @@ macOS 15 (1507) or later required, have instead 15 (1506) !
 ### 解决方案
 
 1. **立即可用**：使用命令行版本 `validator_cli.py`
-2. **打包解决**：使用 PyInstaller 打包 `validator.py` 或 `validator_cli.py`
+2. **打包解决**：使用 PyInstaller 打包 `validator_cli.py`
 3. **详细信息**：请查看 [PACKAGING.md](PACKAGING.md)
 
 ## 功能说明
@@ -180,27 +176,6 @@ macOS 15 (1507) or later required, have instead 15 (1506) !
 
 4. **导出结果（可选）**
    - 点击"导出结果"按钮
-   - 选择导出格式（TXT或CSV）
-   - 选择保存位置
-
-### CustomTkinter GUI 版本（validator.py）
-
-**注意**：此版本在 macOS 某些版本上可能遇到 tkinter 兼容性问题。
-
-1. **启动程序**
-   - 运行 `python3 validator.py` 或双击打包后的可执行文件
-
-2. **选择目录**
-   - 点击"📁 选择数据包目录"按钮
-   - 选择包含数据包的文件夹
-
-3. **开始校验**
-   - 点击"🔍 开始校验"按钮
-   - 等待扫描完成
-   - 查看结果表格
-
-4. **导出结果（可选）**
-   - 点击"📊 导出结果"按钮
    - 选择导出格式（TXT或CSV）
    - 选择保存位置
 

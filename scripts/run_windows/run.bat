@@ -26,31 +26,21 @@ if %errorlevel% neq 0 (
 
 echo.
 echo 请选择要运行的版本:
-echo 1. CustomTkinter GUI版本 (推荐)
+echo 1. PyQt6 GUI版本 (推荐)
 echo 2. 命令行版本
-echo 3. PySimpleGUI GUI版本
-echo 4. PyQt6 GUI版本
-echo 5. 退出
+echo 3. 退出
 echo.
 
-set /p choice="请输入选择 (1-5): "
+set /p choice="请输入选择 (1-3): "
 
 if "%choice%"=="1" (
     echo.
-    echo 启动CustomTkinter GUI版本...
-    "%PYTHON_PATH%\python.exe" validator.py
+    echo 启动PyQt6 GUI版本...
+    "%PYTHON_PATH%\python.exe" validator_qt.py
 ) else if "%choice%"=="2" (
     echo.
     echo 启动命令行版本...
     "%PYTHON_PATH%\python.exe" validator_cli.py
-) else if "%choice%"=="3" (
-    echo.
-    echo 启动PySimpleGUI GUI版本...
-    "%PYTHON_PATH%\python.exe" validator_psg.py
-) else if "%choice%"=="4" (
-    echo.
-    echo 启动PyQt6 GUI版本...
-    "%PYTHON_PATH%\python.exe" validator_qt.py
 ) else if "%choice%"=="5" (
     echo.
     echo 退出程序
