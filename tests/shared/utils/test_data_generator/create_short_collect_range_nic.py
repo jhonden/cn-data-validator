@@ -15,7 +15,7 @@ import shutil
 import xml.etree.ElementTree as ET
 
 
-def create_short_collect_range_package(output_path='test_data/test_short_collect_range.tar.gz'):
+def create_short_collect_range_package(output_path='tests/data/test_data/test_short_collect_range.tar.gz'):
     """创建采集时间范围小于24小时的 NIC 包
 
     Args:

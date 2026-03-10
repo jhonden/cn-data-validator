@@ -13,7 +13,7 @@ import tempfile
 import shutil
 
 
-def create_long_collect_range_package(output_path='test_data/test_long_collect_range.tar.gz'):
+def create_long_collect_range_package(output_path='tests/data/test_data/test_long_collect_range.tar.gz'):
     """创建采集时间范围大于24小时的 NIC 包
 
     Args:

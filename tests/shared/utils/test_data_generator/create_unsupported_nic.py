@@ -16,7 +16,7 @@ import tempfile
 import shutil
 
 
-def create_unsupported_nic_package(output_path='test_data/test_unsupported_nic.tar.gz'):
+def create_unsupported_nic_package(output_path='tests/data/test_data/test_unsupported_nic.tar.gz'):
     """创建完全不支持的 NIC 包
 
     Args:

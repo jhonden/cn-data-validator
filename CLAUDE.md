@@ -371,12 +371,13 @@ Display errors in this order (highest to lowest):
 - `test_modules.py` - Core module tests
 
 ### Test Data Location
-- `test_data/` - Contains sample NIC packages for testing
-- `test_packages/` - Additional test packages
+- `tests/data/test_data/` - Contains sample NIC packages for testing
+- `tests/data/test_packages/` - Additional test packages
 
 ### Creating Test NIC Packages
-- `create_test_nic.py` - Create standard test package
-- `create_anonymous_nic.py` - Create anonymous mode package (should fail)
+- `tests/data/test_data_generator/` - Test data generation scripts
+  - `create_nic_package.py` - Create standard test package
+  - `create_anonymous_nic.py` - Create anonymous mode package (should fail)
 - `create_short_collect_range_nic.py` - Create <24h collection package (should fail)
 - `create_unsupported_nic.py` - Create package with all unsupported NE types (should fail)
 

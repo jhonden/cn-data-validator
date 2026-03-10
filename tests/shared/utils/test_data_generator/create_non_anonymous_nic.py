@@ -13,7 +13,7 @@ import tempfile
 import shutil
 
 
-def create_non_anonymous_package(output_path='test_data/test_non_anonymous.tar.gz'):
+def create_non_anonymous_package(output_path='tests/data/test_data/test_non_anonymous.tar.gz'):
     """创建非匿名化采集的 NIC 包
 
     Args:

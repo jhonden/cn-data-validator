@@ -136,5 +136,5 @@ if __name__ == "__main__":
     create_test_package("test_scenario_wrong_udg", ne_list_udg, "Offline health check scenario")
 
     print("\n" + "=" * 70)
-    print("All test packages created successfully in test_data/ directory!")
+    print("All test packages created successfully in tests/data/test_data/ directory!")
     print("=" * 70)
