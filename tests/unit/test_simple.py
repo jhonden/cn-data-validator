@@ -7,9 +7,9 @@
 import os
 import sys
 
-# Add current directory to sys.path
-if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
 
 def test_imports():
     print("Starting import tests...\n")
@@ -17,7 +17,7 @@ def test_imports():
     # Test core module
     print("1. Testing core module...")
     try:
-        from utils.file_scanner import FileScanner
+        from src.service.file_scanner import FileScanner
         print("   [OK] FileScanner import successful")
     except Exception as e:
         print(f"   [FAIL] FileScanner import failed: {e}")

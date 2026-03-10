@@ -5,12 +5,12 @@
 import os
 import sys
 
-# Add project root to sys.path
-if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
 
-from utils.file_scanner import FileScanner
-from utils.package_identifier import PackageIdentifier
+from src.service.file_scanner import FileScanner
+from src.service.package_identifier import PackageIdentifier
 
 print("=" * 60)
 print("Test: Module Import")

@@ -8,12 +8,11 @@ import tarfile
 import tempfile
 import shutil
 
-# 添加项目根目录到 sys.path
-project_root = os.path.dirname(os.path.abspath(__file__))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
 
-from utils.nic_validator import NICValidator
+from src.service.nic_validator import NICValidator
 
 
 def create_test_nic_package():
