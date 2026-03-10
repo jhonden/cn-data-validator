@@ -25,10 +25,17 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
-from utils.file_scanner import FileScanner
-from utils.package_identifier import PackageIdentifier
-from utils.design_tokens import COLORS, SPACING, SIZES, BORDER_RADIUS
-from utils.typography import FONT_SIZE, FONT_WEIGHT
+import sys
+import os
+# 添加项目根目录到路径
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from src.service.file_scanner import FileScanner
+from src.service.package_identifier import PackageIdentifier
+from src.design_tokens import COLORS, SPACING, SIZES, BORDER_RADIUS
+from src.typography import FONT_SIZE, FONT_WEIGHT
 
 # Excel export support
 try:

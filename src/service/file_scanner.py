@@ -74,6 +74,9 @@ class FileScanner:
                     progress = int((processed / total_files) * 100)
                     progress_callback(progress)
 
+        # 返回扫描结果
+        return self.valid_files + self.illegal_files
+
     def _is_valid_file(self, filename):
         """检查文件格式是否合法"""
         # 获取文件扩展名（正确处理带多个点的文件名）

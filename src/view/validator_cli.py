@@ -14,7 +14,14 @@ from datetime import datetime
 if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from utils.file_scanner import FileScanner
+import sys
+import os
+# 添加项目根目录到路径
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from src.service.file_scanner import FileScanner
 
 class ValidatorCLI:
     def __init__(self):

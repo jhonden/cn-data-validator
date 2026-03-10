@@ -19,7 +19,7 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 
 # Import static MML checker
-from .static_mml_checker import StaticMMLChecker
+from .static_mml.static_mml_checker import StaticMMLChecker
 from .scenario_checker import ScenarioChecker
 
 
@@ -36,11 +36,11 @@ def get_resource_path(relative_path: str) -> str:
     try:
         # PyInstaller 打包后的临时目录
         base_path = sys._MEIPASS
-        # 在打包后，资源文件直接放在 _MEIPASS 的 utils 子目录中
-        return os.path.join(base_path, 'utils', os.path.basename(relative_path))
+        # 在打包后，资源文件直接放在 _MEIPASS 的 src/config 子目录中
+        return os.path.join(base_path, 'src', 'config', os.path.basename(relative_path))
     except AttributeError:
         # 开发环境，使用当前文件所在目录
-        return os.path.join(os.path.dirname(__file__), relative_path)
+        return os.path.join(os.path.dirname(__file__), '..', '..', 'config', relative_path)
 
 
 class NEInstance:
