@@ -59,7 +59,7 @@ class NEInstance:
         """生成网元数据文件夹名称"""
         # 将 IP 中的点替换为下划线
         ip_formatted = self.ip.replace('.', '_')
-        return f"{self.ne_type}_{self.instance_id}_IP_{ip_formatted}_{self.group_id}_{self.name}"
+        return f"{self.ne_type}_{self.instance_id}_IP_{ip_formatted}_{self.name}"
 
     def __repr__(self):
         return f"NEInstance(name={self.name}, type={self.ne_type}, id={self.instance_id})"
