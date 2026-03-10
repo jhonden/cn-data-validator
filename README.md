@@ -6,24 +6,49 @@
 
 ```
 cn-data-validator/
-├── validator_qt.py      # PyQt6 GUI版本（推荐，跨平台兼容）
-├── validator.py         # CustomTkinter GUI版本
-├── validator_cli.py     # 命令行版本（无需GUI库）
-├── validator_psg.py     # PySimpleGUI版本（备选）
-├── build_windows.bat    # Windows 一键打包脚本
-├── build_macos.sh     # macOS/Linux 一键打包脚本
-├── PACKAGING.md        # 打包和问题解决说明
-├── BUILD.md           # 详细打包指南
-├── README.md          # 本文件
-├── docs/              # 文档目录
-│   └── standards/     # 开发规范文档
+├── src/                    # 主应用程序源代码
+│   ├── validator_qt.py      # PyQt6 GUI版本（推荐，跨平台兼容）
+│   ├── validator.py         # CustomTkinter GUI版本
+│   ├── validator_cli.py     # 命令行版本（无需GUI库）
+│   ├── validator_psg.py     # PySimpleGUI版本（备选）
+│   └── exceptions.py       # 自定义异常类
+├── scripts/                # 工具脚本
+│   ├── run_windows/        # Windows启动和打包脚本
+│   │   ├── run_gui_qt.bat      # 启动PyQt6 GUI
+│   │   ├── run_cli.bat         # 启动命令行
+│   │   ├── run_gui_ctk.bat     # 启动CustomTkinter
+│   │   ├── run_gui_psg.bat     # 启动PySimpleGUI
+│   │   ├── build_windows.bat   # 打包Windows应用
+│   │   └── run.bat             # 选择菜单启动
+│   └── test_data_generator/ # 测试数据生成脚本
+│       ├── create_test_nic.py          # 创建测试NIC包
+│       ├── create_anonymous_nic.py    # 创建匿名采集测试包
+│       ├── create_short_collect_range_nic.py  # 创建短时间采集测试包
+│       └── ...
+├── tests/                 # 测试脚本
+│   ├── test_simple.py                 # 基础功能测试
+│   ├── test_nic_validation.py        # NIC包校验测试
+│   └── test_scenario_validation.py   # 场景验证测试
+├── docs/                  # 文档目录
+│   ├── installation/       # 安装和部署文档
+│   │   ├── BUILD.md                # 详细打包指南
+│   │   ├── INSTALL.md               # 安装指南
+│   │   ├── PACKAGING.md            # 打包和问题解决说明
+│   │   ├── QUICK_START.md          # 快速开始指南
+│   │   ├── RUN_GUIDE.md            # 运行指南
+│   │   └── PYTHON3_SETUP.md       # Python环境配置
+│   └── standards/         # 开发规范文档
 │       ├── README.md                    # 规范文档索引
-│       ├── development-conventions.md       # 编码规范
-│       ├── code-submission-workflow.md     # 代码提交流程
-│       └── project-constraints.md          # 项目关键约束
-└── utils/
-    ├── file_scanner.py       # 文件扫描器
-    └── package_identifier.py # 数据包识别器
+│       ├── development-conventions.md     # 编码规范
+│       ├── code-submission-workflow.md   # 代码提交流程
+│       └── project-constraints.md        # 项目关键约束
+└── utils/                 # 核心工具模块
+    ├── file_scanner.py              # 文件扫描器
+    ├── package_identifier.py        # 数据包识别器
+    ├── nic_validator.py             # NIC包深度校验
+    ├── static_mml_checker.py         # 静态MML配置检查
+    └── scenario_checker.py          # 采集场景检查
+```
 ```
 
 ## 📚 开发规范

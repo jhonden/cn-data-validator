@@ -18,46 +18,58 @@ This is a **Network Package Validator** - a cross-platform desktop tool for vali
 
 ```bash
 # PyQt6 GUI (recommended, primary implementation)
-python3 validator_qt.py
+cd $PROJECT_ROOT
+python3 src/validator_qt.py
 
 # Command line interface (no GUI dependencies)
-python3 validator_cli.py
+python3 src/validator_cli.py
 
 # Alternative GUI implementations
-python3 validator.py          # CustomTkinter (has macOS compatibility issues)
-python3 validator_psg.py      # PySimpleGUI
+python3 src/validator.py          # CustomTkinter (has macOS compatibility issues)
+python3 src/validator_psg.py      # PySimpleGUI
+
+# From scripts directory
+scripts/run_windows/run_gui_qt.bat  # Windows
+./build_macos.sh                  # macOS/Linux
 ```
 
 ### Building/Packaging
 
 ```bash
 # Windows
-build_windows.bat
+scripts/run_windows/build_windows.bat
 
 # macOS/Linux
 chmod +x build_macos.sh
 ./build_macos.sh
 
 # Manual packaging
+cd $PROJECT_ROOT
 pip install pyinstaller PyQt6
-pyinstaller --onefile --windowed --name="Network Package Validator" validator_qt.py
+pyinstaller --onefile --windowed --name="Network Package Validator" src/validator_qt.py
 ```
 
 ### Testing
 
 ```bash
 # Basic import test
+cd $PROJECT_ROOT
 python3 -c "from utils.file_scanner import FileScanner; print('OK')"
 
 # Syntax check
-python3 -m py_compile validator_qt.py
-python3 -m py_compile validator_cli.py
+python3 -m py_compile src/validator_qt.py
+python3 -m py_compile src/validator_cli.py
+python3 -m py_compile src/*.py
 python3 -m py_compile utils/*.py
 
 # Run specific test scripts
-python3 test_simple.py
-python3 test_nic_validation.py
-python3 test_scenario_validation.py
+python3 tests/test_simple.py
+python3 tests/test_nic_validation.py
+python3 tests/test_scenario_validation.py
+
+# Create test data
+cd scripts/test_data_generator/
+python3 create_test_nic.py
 ```
 
 ### Installing Dependencies
@@ -288,7 +300,7 @@ NEInstance(name, ne_type, instance_id, group_id, ip)
 # Get project root dynamically
 export PROJECT_ROOT=$(git rev-parse --show-toplevel)
 cd $PROJECT_ROOT
-python3 validator_qt.py
+python3 src/validator_qt.py
 ```
 
 ---
@@ -421,14 +433,14 @@ Use this when loading YAML configs or other bundled resources.
 
 ```bash
 # 1. Compile check
-python3 -m py_compile validator_qt.py
+python3 -m py_compile src/validator_qt.py
 python3 -m py_compile utils/*.py
 
 # 2. Import test
 python3 -c "from validator_qt import ValidatorApp; print('OK')"
 
 # 3. Run the app
-python3 validator_qt.py
+python3 src/validator_qt.py
 
 # 4. Ask user for confirmation before committing
 ```
