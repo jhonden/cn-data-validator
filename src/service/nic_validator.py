@@ -39,8 +39,8 @@ def get_resource_path(relative_path: str) -> str:
         # 在打包后，资源文件直接放在 _MEIPASS 的 src/config 子目录中
         return os.path.join(base_path, 'src', 'config', os.path.basename(relative_path))
     except AttributeError:
-        # 开发环境，使用当前文件所在目录
-        return os.path.join(os.path.dirname(__file__), '..', '..', 'config', relative_path)
+        # 开发环境，使用项目根目录下的src/config目录
+        return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'src', 'config', relative_path)
 
 
 class NEInstance:

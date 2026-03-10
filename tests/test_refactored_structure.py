@@ -12,21 +12,21 @@ import tempfile
 import shutil
 from datetime import datetime
 
-# 添加src目录到Python路径
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# 添加项目根目录到Python路径
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 def test_basic_imports():
     """测试基本模块导入"""
     print("📋 测试1: 基本模块导入")
 
     try:
-        from view.validator_qt import ValidatorApp
-        from view.validator_cli import ValidatorCLI
-        from service.file_scanner import FileScanner
-        from service.package_identifier import PackageIdentifier
-        from service.nic_validator import NICValidator
-        from service.scenario_checker import ScenarioChecker
-        from service.static_mml.static_mml_checker import StaticMMLChecker
+        from src.view.validator_qt import ValidatorApp
+        from src.view.validator_cli import ValidatorCLI
+        from src.service.file_scanner import FileScanner
+        from src.service.package_identifier import PackageIdentifier
+        from src.service.nic_validator import NICValidator
+        from src.service.scenario_checker import ScenarioChecker
+        from src.service.static_mml.static_mml_checker import StaticMMLChecker
         # 配置文件是YAML格式，不需要Python导入
         print("✅ 所有核心模块导入成功")
         return True
