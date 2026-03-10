@@ -67,7 +67,7 @@ echo Close this window to exit the application.
 echo.
 
 REM 启动主程序
-python src/validator_qt.py
+python src/view/validator_qt.py
 
 if errorlevel 1 (
     echo.

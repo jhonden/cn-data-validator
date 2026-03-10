@@ -60,7 +60,7 @@ echo "Close this window to exit the application."
 echo ""
 
 # 启动主程序
-python3 src/validator_qt.py
+python3 src/view/validator_qt.py
 
 # 检查退出状态
 if [ $? -ne 0 ]; then
