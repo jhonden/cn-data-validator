@@ -79,18 +79,21 @@ class FileScanner:
 
     def _is_valid_file(self, filename):
         """检查文件格式是否合法"""
+        # 统一转换为小写进行判断（支持大小写混合的文件名）
+        filename_lower = filename.lower()
+
         # 获取文件扩展名（正确处理带多个点的文件名）
-        name_parts = filename.split('.')
+        name_parts = filename_lower.split('.')
         if len(name_parts) < 2:
             return False
 
         ext = '.' + '.'.join(name_parts[-2:]) if name_parts[-1] in ['gz'] else '.' + name_parts[-1]
 
         # 特殊处理 tar.gz
-        if filename.endswith('.tar.gz'):
+        if filename_lower.endswith('.tar.gz'):
             ext = '.tar.gz'
 
-        return ext.lower() in self.supported_extensions
+        return ext in self.supported_extensions
 
     def get_statistics(self):
         """获取扫描统计"""

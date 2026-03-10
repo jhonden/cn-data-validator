@@ -39,7 +39,7 @@ def test_file_scanner():
     print("\n📋 测试2: 文件扫描功能")
 
     try:
-        from service.file_scanner import FileScanner
+        from src.service.file_scanner import FileScanner
 
         # 创建临时测试目录
         test_dir = tempfile.mkdtemp()
@@ -78,7 +78,7 @@ def test_package_identifier():
     print("\n📋 测试3: 包识别功能")
 
     try:
-        from service.package_identifier import PackageIdentifier
+        from src.service.package_identifier import PackageIdentifier
 
         # 创建测试包名
         test_cases = [
@@ -105,7 +105,7 @@ def test_gui_functionality():
     print("\n📋 测试4: GUI功能检查")
 
     try:
-        from view.validator_qt import ValidatorApp
+        from src.view.validator_qt import ValidatorApp
         print("✅ ValidatorApp类定义正确")
 
         # 检查关键方法是否存在
@@ -129,7 +129,7 @@ def test_cli_functionality():
     print("\n📋 测试5: CLI功能检查")
 
     try:
-        from view.validator_cli import ValidatorCLI
+        from src.view.validator_cli import ValidatorCLI
         print("✅ ValidatorCLI类定义正确")
 
         # 检查关键方法是否存在
@@ -153,7 +153,7 @@ def test_config_loading():
     print("\n📋 测试6: 配置文件加载")
 
     try:
-        from service.static_mml.static_mml_checker import StaticMMLChecker
+        from src.service.static_mml.static_mml_checker import StaticMMLChecker
 
         # 测试配置加载（使用相对路径）
         config_path = "src/config/static_mml_config.yaml"
