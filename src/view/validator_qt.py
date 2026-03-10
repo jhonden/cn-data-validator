@@ -793,7 +793,7 @@ class ValidatorApp(QMainWindow):
     def show_details_dialog(self, file_data):
         """Show details dialog for failed/warning packages"""
         # Create dialog
-        from PyQt6.QtWidgets import QDialog
+        from PyQt6.QtWidgets import QDialog, QScrollArea
 
         dialog = QDialog(self)
         dialog.setWindowTitle(f"Validation Details - {file_data.get('name', '')}")
@@ -804,6 +804,26 @@ class ValidatorApp(QMainWindow):
             }
         """)
 
+        # Main layout
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # Create scroll area
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        # Create container widget for scroll area
+        scroll_content = QWidget()
+        scroll_content.setStyleSheet("""
+            QWidget {
+                background-color: #f5f5f5;
+            }
+        """)
+
+        # Content layout
         layout = QVBoxLayout()
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(16)
@@ -847,9 +867,22 @@ class ValidatorApp(QMainWindow):
                 ne_issues_html = self._get_ne_issues_table_html(nic_validation)
                 layout.addWidget(ne_issues_html)
 
-        # Close button
+        # Add stretch to push buttons to bottom
+        layout.addStretch()
+
+        # Set the content layout
+        scroll_content.setLayout(layout)
+
+        # Set scroll content
+        scroll_area.setWidget(scroll_content)
+
+        # Add scroll area to main layout
+        main_layout.addWidget(scroll_area)
+
+        # Create button container at bottom
+        button_container = QWidget()
         button_layout = QVBoxLayout()
-        button_layout.setContentsMargins(0, 20, 0, 0)
+        button_layout.setContentsMargins(20, 0, 20, 20)
 
         close_btn = QPushButton("Close")
         close_btn.setFixedWidth(120)
@@ -871,11 +904,14 @@ class ValidatorApp(QMainWindow):
             }
         """)
         close_btn.clicked.connect(dialog.accept)
-        button_layout.addWidget(close_btn)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
+        button_layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        button_container.setLayout(button_layout)
 
-        dialog.setLayout(layout)
+        # Add button container to main layout
+        main_layout.addWidget(button_container)
+
+        # Set the main layout
+        dialog.setLayout(main_layout)
         dialog.exec()
 
     def _get_package_issues_table_html(self, nic_validation):
